@@ -13,7 +13,7 @@ void intHandler(int dummy) {
 // server code
 int main(int argc, char *argv[]) {
     signal(SIGINT, intHandler);
-    int sd = UDP_Open(10000);
+    int sd = UDP_Open(PORT);
     assert(sd > -1);
     while (1) {
 	struct sockaddr_in addr;

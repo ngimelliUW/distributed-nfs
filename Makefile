@@ -2,7 +2,7 @@ CC     := gcc
 CFLAGS := -Wall -Werror 
 
 SRCS   := client.c \
-	server.c
+	server.c \
 
 OBJS   := ${SRCS:c=o}
 PROGS  := ${SRCS:.c=}
@@ -11,7 +11,7 @@ PROGS  := ${SRCS:.c=}
 all: ${PROGS}
 
 ${PROGS} : % : %.o Makefile
-	${CC} $< -o $@ udp.c
+	${CC} $< -o $@ udp.c mfs.c
 
 clean:
 	rm -f ${PROGS} ${OBJS}
