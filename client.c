@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
     char message[BUFFER_SIZE];
     sprintf(message, "hello world");
 
-    MFS_Init("localhost", 10000);
+    MFS_Init("localhost", PORT);
 
     // printf("client:: send message [%s]\n", message);
     // rc = UDP_Write(sd, &addrSnd, message, BUFFER_SIZE);
