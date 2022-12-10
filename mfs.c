@@ -19,6 +19,15 @@ int MFS_Init(char *hostname, int port)
     return 0;
 }
 
+/**
+ * takes the parent inode number (which should be the inode number of a directory) and looks up the entry name in it.
+ * The inode number of name is returned. Success: return inode number of name; failure: return -1.
+ * Failure modes: invalid pinum, name does not exist in pinum.
+*/
+int MFS_Lookup(int pinum, char *name){
+
+}
+
 /*
  * returns some information about the file specified by inum.
  * Upon success, return 0, otherwise -1.
