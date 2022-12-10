@@ -4,7 +4,6 @@
 
 int fd;
 struct sockaddr_in server_addr;
-super_t superBlock;
 
 //  takes a host name and port number and uses those to find the server exporting the file system
 int MFS_Init(char *hostname, int port)
@@ -18,11 +17,11 @@ int MFS_Init(char *hostname, int port)
     }
 
     fd = UDP_Open(port);
-    read(fd, &superBlock, sizeof(super_t));
-    printf("Inode bitmap address is %d", superBlock.inode_bitmap_addr);
-    printf("Inode bitmap len is %d", superBlock.inode_bitmap_len);
-    printf("Data bitmap address is %d", superBlock.data_bitmap_addr);
-    printf("Data bitmap len is %d", superBlock.data_bitmap_len);
+    // read(fd, &superBlock, sizeof(super_t));
+    // printf("Inode bitmap address is %d", superBlock.inode_bitmap_addr);
+    // printf("Inode bitmap len is %d", superBlock.inode_bitmap_len);
+    // printf("Data bitmap address is %d", superBlock.data_bitmap_addr);
+    // printf("Data bitmap len is %d", superBlock.data_bitmap_len);
     return 0;
 }
 
