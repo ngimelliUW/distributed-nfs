@@ -11,7 +11,11 @@ void intHandler(int dummy) {
 }
 
 // server code
+//portnum, file-system-image
 int main(int argc, char *argv[]) {
+    int portnum = atoi(argv[1]);
+    char* fsi = argv[2];
+
     signal(SIGINT, intHandler);
     int sd = UDP_Open(10000);
     assert(sd > -1);
