@@ -95,5 +95,10 @@ int MFS_Unlink(int pinum, char *name)
 */
 int MFS_Shutdown()
 {
+    msg_t msg;
+    msg.func = SHUTDOWN;
+    UDP_Write(fd, &server_addr, (char *) &msg, sizeof(msg_t));
+    UDP_Read(fd, &server_addr, (char *) &msg, sizeof(msg_t));
+    exit(0);
     return -1;
 }
