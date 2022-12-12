@@ -15,7 +15,7 @@ ${PROGS} : % : %.o Makefile
 
 lib:
 	gcc -fPIC -c mfs.c -o mfs.o
-	gcc -shared mfs.o -o libmfs.so
+	gcc -shared mfs.o udp.h udp.c -o libmfs.so
 
 clean:
 	rm -f ${PROGS} ${OBJS}
