@@ -31,7 +31,8 @@ int MFS_Init(char *hostname, int port)
  * The inode number of name is returned. Success: return inode number of name; failure: return -1.
  * Failure modes: invalid pinum, name does not exist in pinum.
 */
-int MFS_Lookup(int pinum, char *name){
+int MFS_Lookup(int pinum, char *name)
+{
     return -1;
 }
 
@@ -44,7 +45,7 @@ int MFS_Lookup(int pinum, char *name){
  */
 int MFS_Stat(int inum, MFS_Stat_t *m)
 {
-    return -1;  
+    return -1;
 }
 
 /*
@@ -97,8 +98,9 @@ int MFS_Shutdown()
 {
     msg_t msg;
     msg.func = SHUTDOWN;
-    UDP_Write(fd, &server_addr, (char *) &msg, sizeof(msg_t));
-    UDP_Read(fd, &server_addr, (char *) &msg, sizeof(msg_t));
+    UDP_Write(fd, &server_addr, (char *)&msg, sizeof(msg_t));
+
+    UDP_Read(fd, &server_addr, (char *)&msg, sizeof(msg_t));
     exit(0);
     return -1;
 }
