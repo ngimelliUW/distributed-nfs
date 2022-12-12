@@ -1,5 +1,13 @@
 #include "mfs.h"
 
+#define INIT (0)
+#define LOOKUP (1)
+#define STAT (2)
+#define WRITE (3)
+#define READ (4)
+#define CREAT (5)
+#define UNLINK (6)
+#define SHUTDOWN (7)
 typedef struct __msg_t
 {
     char *hostname;
