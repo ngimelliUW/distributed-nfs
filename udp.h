@@ -23,8 +23,6 @@
 #include <netinet/tcp.h>
 #include <netinet/in.h>
 
-#define PORT 10003
-
 //
 // prototypes
 // 
