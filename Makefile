@@ -13,6 +13,10 @@ all: ${PROGS}
 ${PROGS} : % : %.o Makefile
 	${CC} $< -o $@ udp.c mfs.c
 
+lib:
+	gcc -fPIC -c mfs.c -o mfs.o
+	gcc -shared mfs.o -o libmfs.so
+
 clean:
 	rm -f ${PROGS} ${OBJS}
 
