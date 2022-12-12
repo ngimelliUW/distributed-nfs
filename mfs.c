@@ -1,6 +1,7 @@
 #include "udp.h"
 #include "mfs.h"
 #include "ufs.h"
+#include "msg.h"
 
 int fd;
 struct sockaddr_in server_addr;

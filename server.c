@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "udp.h"
 #include "ufs.h"
+#include "msg.h"
 
 #define BUFFER_SIZE (1000)
 
@@ -40,5 +41,6 @@ int main(int argc, char *argv[]) {
 	    printf("server:: reply\n");
 	} 
     }
+    
     return 0; 
 }
