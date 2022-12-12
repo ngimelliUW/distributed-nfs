@@ -14,7 +14,7 @@ void intHandler(int dummy)
     exit(130);
 }
 
-int shut_down()
+int server_shutdown()
 {
     fsync(fileD);
     exit(0);
@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 
         if (msg.func == SHUTDOWN)
         {
-            shut_down();
+            server_shutdown();
         }
 
         char message[BUFFER_SIZE];
