@@ -2,6 +2,8 @@
 #include "udp.h"
 #include "ufs.h"
 #include "msg.h"
+#include <sys/stat.h>
+#include <signal.h>
 
 #define BUFFER_SIZE (1000)
 
