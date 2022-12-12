@@ -6,7 +6,6 @@
 
 int sd;
 super_t superBlock;
-
 void intHandler(int dummy) {
     UDP_Close(sd);
     exit(130);
@@ -18,7 +17,7 @@ int main(int argc, char *argv[]) {
     int portnum = atoi(argv[1]);
     char* fsi = argv[2];
 
-    int fd = open(fsi, O_RDONLY);
+    int fd = open(fsi, O_RDWR | O_CREAT, S_IRWXU);
     read(fd, &superBlock, sizeof(super_t));
     // printf("Inode bitmap address is %d\n", superBlock.inode_bitmap_addr);
     // printf("Inode bitmap len is %d\n", superBlock.inode_bitmap_len);
