@@ -11,6 +11,8 @@ int sd;    // connection fd
 int fileD; // from file system image
 super_t superBlock;
 
+char meta_blocks[3 * MFS_BLOCK_SIZE];
+
 res_t res;
 
 void intHandler(int dummy)
@@ -30,7 +32,13 @@ int server_shutdown()
 //portnum, file-system-image
 int main(int argc, char *argv[])
 {
-    int portnum = atoi(argv[1]);
+
+    if (argc != 3)
+    {
+        exit(1);
+    }
+
+    int portnum = portnum = strtol(argv[1], NULL, 10);
     char *fsi = argv[2];
 
     fileD = open(fsi, O_RDWR | O_CREAT, S_IRWXU);
@@ -39,14 +47,27 @@ int main(int argc, char *argv[])
     res.rc = -1; // default return val
 
     signal(SIGINT, intHandler);
+
     int sd = UDP_Open(portnum);
+    if (sd == -1)
+    {
+        fsync(sd);
+    }
+    else
+    {
+        pread(sd, meta_blocks, 3 * MFS_BLOCK_SIZE, MFS_BLOCK_SIZE);
+    }
+
     assert(sd > -1);
     while (1)
     {
+        printf("server:: waiting...\n");
         struct sockaddr_in addr;
 
         msg_t msg;
+        printf("got to read\n");
         UDP_Read(sd, &addr, (char *)&msg, sizeof(msg));
+        printf("got past read\n");
 
         if (msg.func == SHUTDOWN)
         {
@@ -54,12 +75,15 @@ int main(int argc, char *argv[])
             res.rc = 0;
         }
 
+        printf("got to write\n");
         // after reqs:
         UDP_Write(sd, &addr, (char *)&res, sizeof(res));
+        printf("got past write\n");
 
         if (msg.func == SHUTDOWN)
         {
-            UDP_Close(fileD);
+            printf("shuttin the ufck down\n");
+            UDP_Close(sd);
             exit(0);
         }
 
