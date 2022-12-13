@@ -4,21 +4,28 @@
 
 #define BUFFER_SIZE (1000)
 
+int sd;
 // client code
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     struct sockaddr_in addrSnd, addrRcv;
 
-    int sd = UDP_Open(20000);
-    int rc = UDP_FillSockAddr(&addrSnd, "localhost", 10003);
+    // int sd = UDP_Open(20000);
+    // int rc = UDP_FillSockAddr(&addrSnd, "localhost", 10003);
 
     char message[BUFFER_SIZE];
     sprintf(message, "hello world");
 
+    sd = MFS_Init("localhost", 10004);
+    printf("got past init\n");
+    MFS_Shutdown();
+
     printf("client:: send message [%s]\n", message);
-    rc = UDP_Write(sd, &addrSnd, message, BUFFER_SIZE);
-    if (rc < 0) {
-	printf("client:: failed to send\n");
-	exit(1);
+    int rc = UDP_Write(sd, &addrSnd, message, BUFFER_SIZE);
+    if (rc < 0)
+    {
+        printf("client:: failed to send\n");
+        exit(1);
     }
 
     printf("client:: wait for reply...\n");
