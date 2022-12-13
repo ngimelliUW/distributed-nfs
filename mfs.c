@@ -19,6 +19,8 @@ void send_req()
     tv.tv_sec = 3;
     tv.tv_usec = 0;
 
+    UDP_Write(fd, &server_addr, (char *)&msg, sizeof(msg_t));
+
     int is_ready = select(fd + 1, &fds, NULL, NULL, &tv);
 
     if (is_ready)
@@ -55,7 +57,7 @@ int MFS_Init(char *hostname, int port)
         return rc;
     }
 
-    fd = UDP_Open(port);
+    fd = UDP_Open(0);
     return 0;
 }
 
@@ -87,7 +89,6 @@ int MFS_Stat(int inum, MFS_Stat_t *m)
     msg.inum = inum;
     msg.m = m;
     send_req();
-
 
     return -1;
 }
@@ -161,5 +162,5 @@ int MFS_Shutdown()
     send_req();
 
     UDP_Close(fd);
-    return sres.rc;
+    return 0;
 }
