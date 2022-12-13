@@ -8,6 +8,7 @@
 #define CREAT (5)
 #define UNLINK (6)
 #define SHUTDOWN (7)
+
 typedef struct __msg_t
 {
     char *hostname;
@@ -22,3 +23,12 @@ typedef struct __msg_t
     int type;
     int func;
 } msg_t;
+
+typedef struct __res_t
+{
+    int rc;
+    int inum;
+    char msg[16];
+    MFS_Stat_t mfs_stat;
+    char buffer[MFS_BLOCK_SIZE];
+} res_t;
