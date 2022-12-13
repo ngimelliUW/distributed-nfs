@@ -33,6 +33,15 @@ int MFS_Init(char *hostname, int port)
 */
 int MFS_Lookup(int pinum, char *name)
 {
+    msg_t msg;
+    msg.func = LOOKUP;
+    msg.pinum = pinum;
+    strcpy(msg.name, name);
+
+    UDP_Write(fd, &server_addr, (char *)&msg, sizeof(msg_t));
+
+    UDP_Read(fd, &server_addr, (char *)&msg, sizeof(msg_t));
+
     return -1;
 }
 
