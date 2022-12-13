@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
     int portnum = atoi(argv[1]);
     char *fsi = argv[2];
 
-    int fileD = open(fsi, O_RDWR | O_CREAT, S_IRWXU);
+    fileD = open(fsi, O_RDWR | O_CREAT, S_IRWXU);
     read(fileD, &superBlock, sizeof(super_t));
 
     signal(SIGINT, intHandler);
