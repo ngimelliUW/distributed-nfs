@@ -6,6 +6,44 @@
 int fd;
 struct sockaddr_in server_addr;
 
+msg_t msg;  // message to send to server
+res_t sres; // message to receive from server
+
+void send_req()
+{
+    struct timeval tv;
+    fd_set fds;
+    FD_ZERO(&fds);
+    FD_SET(fd, &fds);
+
+    tv.tv_sec = 3;
+    tv.tv_usec = 0;
+
+    int is_ready = select(fd + 1, &fds, NULL, NULL, &tv);
+
+    if (is_ready)
+    {
+        UDP_Read(fd, &server_addr, (char *)&sres, sizeof(res_t));
+        if (sres.rc)
+        {
+            // handle req failure
+            printf("req failed\n");
+        }
+        else
+        {
+            // handle req success
+            printf("req successful\n");
+        }
+    }
+    else
+    {
+        // timeout occured:
+        printf("timed out. trying req again\n");
+        send_req();
+    }
+    UDP_Write(fd, &server_addr, (char *)&msg, sizeof(msg_t));
+}
+
 //  takes a host name and port number and uses those to find the server exporting the file system
 int MFS_Init(char *hostname, int port)
 {
@@ -18,11 +56,6 @@ int MFS_Init(char *hostname, int port)
     }
 
     fd = UDP_Open(port);
-    // read(fd, &superBlock, sizeof(super_t));
-    // printf("Inode bitmap address is %d", superBlock.inode_bitmap_addr);
-    // printf("Inode bitmap len is %d", superBlock.inode_bitmap_len);
-    // printf("Data bitmap address is %d", superBlock.data_bitmap_addr);
-    // printf("Data bitmap len is %d", superBlock.data_bitmap_len);
     return 0;
 }
 
@@ -38,9 +71,7 @@ int MFS_Lookup(int pinum, char *name)
     msg.pinum = pinum;
     strcpy(msg.name, name);
 
-    UDP_Write(fd, &server_addr, (char *)&msg, sizeof(msg_t));
-
-    UDP_Read(fd, &server_addr, (char *)&msg, sizeof(msg_t));
+    send_req();
 
     return -1;
 }
@@ -105,12 +136,9 @@ int MFS_Unlink(int pinum, char *name)
 */
 int MFS_Shutdown()
 {
-    msg_t msg;
     msg.func = SHUTDOWN;
-    UDP_Write(fd, &server_addr, (char *)&msg, sizeof(msg_t));
-
-    UDP_Read(fd, &server_addr, (char *)&msg, sizeof(msg_t));
+    send_req();
 
     UDP_Close(fd);
-    return 0;
+    return sres.rc;
 }
