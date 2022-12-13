@@ -7,9 +7,12 @@
 
 #define BUFFER_SIZE (1000)
 
-int sd;
-int fileD;
+int sd;    // connection fd
+int fileD; // from file system image
 super_t superBlock;
+
+res_t res;
+
 void intHandler(int dummy)
 {
     UDP_Close(sd);
@@ -20,7 +23,7 @@ int server_shutdown()
 {
     fsync(fileD);
     close(fileD);
-    exit(0);
+    return 0;
 }
 
 // server code
@@ -32,6 +35,8 @@ int main(int argc, char *argv[])
 
     fileD = open(fsi, O_RDWR | O_CREAT, S_IRWXU);
     read(fileD, &superBlock, sizeof(super_t));
+
+    res.rc = -1; // default return val
 
     signal(SIGINT, intHandler);
     int sd = UDP_Open(portnum);
@@ -46,6 +51,16 @@ int main(int argc, char *argv[])
         if (msg.func == SHUTDOWN)
         {
             server_shutdown();
+            res.rc = 0;
+        }
+
+        // after reqs:
+        UDP_Write(sd, &addr, (char *)&res, sizeof(res));
+
+        if (msg.func == SHUTDOWN)
+        {
+            UDP_Close(fileD);
+            exit(0);
         }
 
         char message[BUFFER_SIZE];
