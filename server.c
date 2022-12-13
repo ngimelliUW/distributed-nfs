@@ -19,6 +19,7 @@ void intHandler(int dummy)
 int server_shutdown()
 {
     fsync(fileD);
+    close(fileD);
     exit(0);
 }
 
