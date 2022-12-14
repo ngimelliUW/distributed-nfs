@@ -33,7 +33,11 @@ int server_lookup(int pinum, char *name)
     long inode_address = (long)(fileD + superBlock.inode_region_addr + pinum * 128);
     memcpy(&in, (void *)inode_address, sizeof(inode_t));
 
-    printf(in.size);
+    return -1;
+}
+
+int server_creat(int pinum, int type, char *name)
+{
     return -1;
 }
 
