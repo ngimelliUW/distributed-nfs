@@ -6,18 +6,13 @@
 #include <signal.h>
 
 #define BUFFER_SIZE (1000)
+//REMINDER Amount of directory entries = directory inode's size / 32
 
 int sd;    // connection fd
 int fileD; // from file system image
 super_t superBlock;
-
-char meta_blocks[3 * MFS_BLOCK_SIZE];
-inode_t *inodes;
-
-char meta_blocks[3 * MFS_BLOCK_SIZE];
-inode_t *inodes;
-
 res_t res;
+inode_t * inodes;
 
 
 void intHandler(int dummy)
@@ -26,6 +21,7 @@ void intHandler(int dummy)
     exit(130);
 }
 
+// These two functions take the pointer to the beginning of the inode or data block bitmap region and an integer that is the inode or data block number.
 unsigned int get_bit(unsigned int *bitmap, int position)
 {
     int index = position / 32;
@@ -40,29 +36,70 @@ void set_bit(unsigned int *bitmap, int position)
     bitmap[index] |= 0x1 << offset;
 }
 
+void clear_bit(unsigned int *bitmap, int position)
+{
+    int index = position / 32;
+    int offset = 31 - (position % 32);
+    bitmap[index] &= ~(0x1 << offset);
+}
+
 int server_init()
 {
-    inodes = (inode_t *)(long)superBlock.inode_region_addr;
-    return -1;
+    // inodes = (inode_t *)(long) (&superBlock + MFS_BLOCK_SIZE*superBlock.inode_region_addr);
+
+    // // Set each free directory entry to -1;
+    // for(int i = 1; i < superBlock.num_inodes; i++){
+    //     // printf("Current i is %d\n", i);
+    //     for(int j = 0; j < DIRECT_PTRS; j++){
+    //         inode_t *curr_inode = &inodes[i];
+    //         curr_inode->size = 0;
+    //         curr_inode->type = 0;
+    //         curr_inode->direct[j] = ~0;
+    //     }
+    // }
+
+    // // Set bits in the inode bitmap to 0
+    // for(int i = 0; i < superBlock.inode_bitmap_len; i++) memset((void *) (long) superBlock.inode_bitmap_addr + i * MFS_BLOCK_SIZE, 0, MFS_BLOCK_SIZE);
+
+    // //Set up root directory
+    // inodes[0].size = 0;
+    // inodes[0].type = MFS_DIRECTORY;
+
+    // // Update bitmaps
+    // set_bit((unsigned int *) (long) superBlock.inode_bitmap_addr, 0);
+    // inodes[0].direct[0] = 0;
+    // set_bit((unsigned int *) (long) superBlock.data_bitmap_addr, 0);
+    // //curr = ., parent = ..
+    // MFS_DirEnt_t * curr = (MFS_DirEnt_t *) (long) superBlock.data_region_addr;
+    // strncpy(curr->name, ".", sizeof(curr->name));
+    // curr->inum = 0;
+    // MFS_DirEnt_t * parent = (MFS_DirEnt_t *) (long) (superBlock.data_region_addr + sizeof(MFS_DirEnt_t));
+    // strncpy(parent->name, "..", sizeof(curr->name));
+    // parent->inum = 0;
+    // //Fill in unused entries with inode -1, in case of remove
+    // for(int i = 2; i < MFS_BLOCK_SIZE/sizeof(MFS_DirEnt_t); i++){
+    //     MFS_DirEnt_t * unused_dir = (MFS_DirEnt_t *) (long) (superBlock.data_region_addr + i * sizeof(MFS_DirEnt_t));
+    //     unused_dir->inum = 0;
+    // }
+
+    // fsync(fileD);
+    return 0;
 }
 
 int server_stat(int inum, MFS_Stat_t *m) {
     if (superBlock.num_inodes < inum || inum < 0){
         printf("This inum is not in the inode table");
+        return -1;
     }
-    else{
-        if (!get_bit((unsigned int *) (long) superBlock.inode_bitmap_addr, inum)){ //If the bit for this inum is 0
-            printf("There's no allocated file at this inode");
-        }
-        else{
-            res.rc = 0;
-            inode_t curr_inode = inodes[inum];
-            m -> type = curr_inode.type;
-            m -> size = curr_inode.size;
-            return 0;
-        }
+    if (!get_bit((unsigned int *) (long) superBlock.inode_bitmap_addr, inum)){ //If the bit for this inum is 0
+        printf("There's no allocated file at this inode");
+        return -1;
     }
-    return -1;
+    res.rc = 0;
+    inode_t curr_inode = inodes[inum];
+    m -> type = curr_inode.type;
+    m -> size = curr_inode.size;
+    return 0;
 }
 
 int server_lookup(int pinum, char *name)
@@ -78,8 +115,15 @@ int server_lookup(int pinum, char *name)
 
 int server_creat(int pinum, int type, char *name)
 {
-    if (pinum < 0 || pinum > superBlock.num_inodes - 1)
+    if (pinum < 0 || pinum > superBlock.num_inodes) {
+        printf("Parent inum is out of range");
         return -1;
+    }
+
+    if (!get_bit((unsigned int *) (long) superBlock.inode_bitmap_addr, pinum)){
+        printf("Parent inum is unallocated");
+        return -1;
+    }
 
     inode_t parent = inodes[pinum];
     // long inode_address = (long)(fileD + superBlock.inode_region_addr + pinum * 128);
@@ -89,8 +133,7 @@ int server_creat(int pinum, int type, char *name)
     // loop through parent inodes pointers:
     for (int i = 0; i < DIRECT_PTRS; i++)
     {
-        // figure out why this:
-        if (parent.direct[i] == ~0)
+        if (parent.direct[i] == ~0) //Unsigned -1 = 32 1s. ~0 = 32 1s. Unused directories are initialized to -1 in his initfs(). REMINDER
             continue;
 
         int offset;
@@ -144,7 +187,7 @@ int server_creat(int pinum, int type, char *name)
             // set block as used in bitmap:
             set_bit((unsigned int *)(long)superBlock.data_bitmap_addr, next_datablock_idx);
 
-            pwrite(fileD, meta_blocks, 3 * MFS_BLOCK_SIZE, MFS_BLOCK_SIZE);
+            // pwrite(fileD, meta_blocks, 3 * MFS_BLOCK_SIZE, MFS_BLOCK_SIZE);
 
             // TODO: deal with making directories:
 
@@ -175,13 +218,12 @@ int server_shutdown()
 //portnum, file-system-image
 int main(int argc, char *argv[])
 {
-
     if (argc != 3)
     {
         exit(1);
     }
 
-    int portnum = portnum = strtol(argv[1], NULL, 10);
+    int portnum = strtol(argv[1], NULL, 10);
     char *fsi = argv[2];
 
     fileD = open(fsi, O_RDWR | O_CREAT, S_IRWXU);
@@ -189,30 +231,29 @@ int main(int argc, char *argv[])
 
     server_init();
 
-    res.rc = -1; // default return val
-
     signal(SIGINT, intHandler);
 
     int sd = UDP_Open(portnum);
-    if (sd == -1)
-    {
-        fsync(sd);
-    }
-    else
-    {
-        pread(sd, meta_blocks, 3 * MFS_BLOCK_SIZE, MFS_BLOCK_SIZE);
-    }
+    //REMINDER
+    //Inits super block
+    // if (sd == -1)
+    // {
+    //     fsync(sd);
+    // }
+    // else
+    // {
+        // pread(sd, meta_blocks, 3 * MFS_BLOCK_SIZE, MFS_BLOCK_SIZE);
+    // }
 
     assert(sd > -1);
     while (1)
     {
+        res.rc = -1; // default return val REMINDER moved inside while loop
         printf("server:: waiting...\n");
         struct sockaddr_in addr;
 
         msg_t msg;
-        printf("got to read\n");
         UDP_Read(sd, &addr, (char *)&msg, sizeof(msg));
-        printf("got past read\n");
 
         if (msg.func == STAT){
             server_stat(msg.inum, msg.m);
@@ -224,15 +265,12 @@ int main(int argc, char *argv[])
             res.rc = 0;
         }
 
-        printf("got to write\n");
         // after reqs:
         // ACKNOWLEDGEMENT
         UDP_Write(sd, &addr, (char *)&res, sizeof(res));
-        printf("got past write\n");
 
         if (msg.func == SHUTDOWN)
         {
-            printf("shuttin the ufck down\n");
             UDP_Close(sd);
             exit(0);
         }
