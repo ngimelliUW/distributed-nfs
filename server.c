@@ -115,32 +115,32 @@ int server_lookup(int pinum, char *name)
         return -1;
     }
 
-    if (!get_bit(inode_bitmap, pinum))
-    {
-        printf("Parent inum is not in used\n");
-        return -1;
-    }
+    // if (!get_bit(inode_bitmap, pinum))
+    // {
+    //     printf("Parent inum is not in used\n");
+    //     return -1;
+    // }
 
     printf("got past error handling\n");
 
-    inode_t *parent = inodes[pinum];
+    //inode_t *parent = inodes[pinum];
 
-    for (int i = 0; i < DIRECT_PTRS; i++)
-    {
-        if (parent->direct[i] == ~0)
-            continue;
+    // for (int i = 0; i < DIRECT_PTRS; i++)
+    // {
+    //     if (parent->direct[i] == ~0)
+    //         continue;
 
-        for (int j = 0; j < MFS_BLOCK_SIZE; j += sizeof(dir_ent_t))
-        {
-            dir_ent_t *curr_dir_ent;
-            curr_dir_ent = data_blocks + MFS_BLOCK_SIZE * parent->direct[i] + j;
-            if (!strcmp(curr_dir_ent->name, name))
-            {
-                res.rc = 0;
-                return curr_dir_ent->inum;
-            }
-        }
-    }
+    //     for (int j = 0; j < MFS_BLOCK_SIZE; j += sizeof(dir_ent_t))
+    //     {
+    //         dir_ent_t *curr_dir_ent;
+    //         curr_dir_ent = data_blocks + MFS_BLOCK_SIZE * parent->direct[i] + j;
+    //         if (!strcmp(curr_dir_ent->name, name))
+    //         {
+    //             res.rc = 0;
+    //             return curr_dir_ent->inum;
+    //         }
+    //     }
+    // }
     return -1;
 }
 
