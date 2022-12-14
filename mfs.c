@@ -21,6 +21,7 @@ void send_req()
 
     UDP_Write(fd, &server_addr, (char *)&msg, sizeof(msg_t));
 
+
     int is_ready = select(fd + 1, &fds, NULL, NULL, &tv);
 
     if (is_ready)
@@ -57,7 +58,7 @@ int MFS_Init(char *hostname, int port)
         return rc;
     }
 
-    fd = UDP_Open(0);
+    fd = UDP_Open(port);
     return 0;
 }
 

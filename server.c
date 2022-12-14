@@ -14,6 +14,9 @@ super_t superBlock;
 char meta_blocks[3 * MFS_BLOCK_SIZE];
 inode_t *inodes;
 
+char meta_blocks[3 * MFS_BLOCK_SIZE];
+inode_t *inodes;
+
 res_t res;
 
 // //These two functions take the pointer to the beginning of the inode or data block bitmap region
