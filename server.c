@@ -12,6 +12,7 @@ int fileD; // from file system image
 super_t superBlock;
 
 char meta_blocks[3 * MFS_BLOCK_SIZE];
+struct inode *inodes = (struct inode *)&meta_blocks[MFS_BLOCK_SIZE];
 
 res_t res;
 
@@ -19,6 +20,21 @@ void intHandler(int dummy)
 {
     UDP_Close(sd);
     exit(130);
+}
+
+int server_init()
+{
+    return -1;
+}
+
+int server_lookup(int pinum, char *name)
+{
+    inode_t in;
+    long inode_address = (long)(fileD + superBlock.inode_region_addr + pinum * 128);
+    memcpy(&in, (void *)inode_address, sizeof(inode_t));
+
+    printf(in.size);
+    return -1;
 }
 
 int server_shutdown()
