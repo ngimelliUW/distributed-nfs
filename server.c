@@ -19,19 +19,6 @@ inode_t *inodes;
 
 res_t res;
 
-// //These two functions take the pointer to the beginning of the inode or data block bitmap region
-// //and an integer that is the inode or data block number.
-// unsigned int get_bit(unsigned int *bitmap, int position) {
-//    int index = position / 32;
-//    int offset = 31 - (position % 32);
-//    return (bitmap[index] >> offset) & 0x1;
-// }
-
-// void set_bit(unsigned int *bitmap, int position) {
-//    int index = position / 32;
-//    int offset = 31 - (position % 32);
-//    bitmap[index] |=  0x1 << offset;
-// }
 
 void intHandler(int dummy)
 {

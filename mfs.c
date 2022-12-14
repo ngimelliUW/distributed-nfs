@@ -58,7 +58,7 @@ int MFS_Init(char *hostname, int port)
         return rc;
     }
 
-    fd = UDP_Open(port);
+    fd = UDP_Open(0);
     return 0;
 }
 
