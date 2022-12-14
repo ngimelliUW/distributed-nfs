@@ -13,6 +13,20 @@ super_t superBlock;
 
 res_t res;
 
+// //These two functions take the pointer to the beginning of the inode or data block bitmap region
+// //and an integer that is the inode or data block number.
+// unsigned int get_bit(unsigned int *bitmap, int position) {
+//    int index = position / 32;
+//    int offset = 31 - (position % 32);
+//    return (bitmap[index] >> offset) & 0x1;
+// }
+
+// void set_bit(unsigned int *bitmap, int position) {
+//    int index = position / 32;
+//    int offset = 31 - (position % 32);
+//    bitmap[index] |=  0x1 << offset;
+// }
+
 void intHandler(int dummy)
 {
     UDP_Close(sd);
@@ -48,6 +62,24 @@ int main(int argc, char *argv[])
         msg_t msg;
         UDP_Read(sd, &addr, (char *)&msg, sizeof(msg));
 
+        // if (msg.func == STAT){
+        //     if (superBlock.num_inodes < msg.inum || msg.inum < 0){
+        //         printf("This inum is not in the inode table");
+        //     }
+        //     else{
+        //         if (!get_bit((unsigned int *) (long) superBlock.inode_bitmap_addr, msg.inum)){ //If the bit for this inum is 0
+        //             printf("There's no allocated file at this inode");
+        //         }
+        //         else{
+        //             res.rc = 0;
+        //             inode_t curr_inode = *(inode_t *)(long) (superBlock.inode_region_addr + MFS_INODE_SIZE * msg.inum);
+        //             msg.m -> type = curr_inode.type;
+        //             msg.m -> size = curr_inode.size;
+        //         }
+
+        //     }
+        // }
+
         if (msg.func == SHUTDOWN)
         {
             server_shutdown();
@@ -55,6 +87,7 @@ int main(int argc, char *argv[])
         }
 
         // after reqs:
+        // ACKNOWLEDGEMENT
         UDP_Write(sd, &addr, (char *)&res, sizeof(res));
 
         if (msg.func == SHUTDOWN)
