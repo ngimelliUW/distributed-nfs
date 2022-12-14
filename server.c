@@ -13,6 +13,7 @@ int fileD; // from file system image
 super_t superBlock;
 res_t res;
 inode_t **inodes;
+void *data_blocks;
 void *inode_bitmap;
 void *data_bitmap;
 
@@ -82,21 +83,24 @@ int server_init()
     set_bit(data_bitmap, 0);
 
     // TODO: malloc datablocks
+    data_blocks = malloc(superBlock.num_data * MFS_BLOCK_SIZE);
 
     //curr = ., parent = ..
-    // MFS_DirEnt_t *curr = (MFS_DirEnt_t *)(long)superBlock.data_region_addr;
-    // strncpy(curr->name, ".", sizeof(curr->name));
-    // curr->inum = 0;
-    // MFS_DirEnt_t *parent = (MFS_DirEnt_t *)(long)(superBlock.data_region_addr + sizeof(MFS_DirEnt_t));
-    // strncpy(parent->name, "..", sizeof(curr->name));
-    // parent->inum = 0;
-    // //Fill in unused entries with inode -1, in case of remove
-    // for (int i = 2; i < MFS_BLOCK_SIZE / sizeof(MFS_DirEnt_t); i++)
-    // {
-    //     MFS_DirEnt_t *unused_dir = (MFS_DirEnt_t *)(long)(superBlock.data_region_addr + i * sizeof(MFS_DirEnt_t));
-    //     unused_dir->inum = -1;
-    //     strncpy(unused_dir, "", sizeof(unused_dir->name));
-    // }
+    MFS_DirEnt_t *curr = data_blocks;
+    strncpy(curr->name, ".", sizeof(curr->name));
+    curr->inum = 0;
+
+    MFS_DirEnt_t *parent = data_blocks + sizeof(MFS_DirEnt_t);
+    strncpy(parent->name, "..", sizeof(curr->name));
+    parent->inum = 0;
+
+    // Fill in unused entries with inode -1, in case of remove
+    for (int i = 2; i < MFS_BLOCK_SIZE / sizeof(MFS_DirEnt_t); i++)
+    {
+        MFS_DirEnt_t *unused_dir = (data_blocks + i * sizeof(MFS_DirEnt_t));
+        unused_dir->inum = -1;
+        strncpy(unused_dir->name, "", sizeof(unused_dir->name));
+    }
 
     fsync(fileD);
     return 0;
