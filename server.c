@@ -13,6 +13,8 @@ int fileD; // from file system image
 super_t superBlock;
 res_t res;
 inode_t **inodes;
+void *inode_bitmap;
+void *data_bitmap;
 
 void intHandler(int dummy)
 {
@@ -60,8 +62,9 @@ int server_init()
         inodes[i] = &node;
     }
 
-    // // Set bits in the inode bitmap to 0
-    // for(int i = 0; i < superBlock.inode_bitmap_len; i++) memset((void *) (long) superBlock.inode_bitmap_addr + i * MFS_BLOCK_SIZE, 0, MFS_BLOCK_SIZE);
+    // Set bits in the inode bitmap to 0
+    void *inode_bitmap = malloc(superBlock.inode_bitmap_len * MFS_BLOCK_SIZE);
+    memset(inode_bitmap, 0, MFS_BLOCK_SIZE * superBlock.inode_bitmap_len);
 
     // //Set up root directory
     // inodes[0].size = 0;
