@@ -18,6 +18,8 @@ int main(int argc, char *argv[])
 
     sd = MFS_Init("localhost", 10004);
     printf("got past init\n");
+    MFS_Lookup(0, ".");
+    //printf("%d", test);
     MFS_Shutdown();
 
     printf("client:: send message [%s]\n", message);

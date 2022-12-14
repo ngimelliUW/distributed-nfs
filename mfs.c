@@ -21,7 +21,6 @@ void send_req()
 
     UDP_Write(fd, &server_addr, (char *)&msg, sizeof(msg_t));
 
-
     int is_ready = select(fd + 1, &fds, NULL, NULL, &tv);
 
     if (is_ready)
@@ -71,9 +70,12 @@ int MFS_Lookup(int pinum, char *name)
 {
     msg.func = LOOKUP;
     msg.pinum = pinum;
-    strncpy(msg.name, name, sizeof(name));
+    strncpy(msg.name, name, sizeof(msg.name));
+    printf("got past strncpy\n");
 
     send_req();
+
+    printf("got past send req\n");
 
     return sres.rc;
 }

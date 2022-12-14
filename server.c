@@ -106,29 +106,36 @@ int server_init()
     return 0;
 }
 
-
 int server_lookup(int pinum, char *name)
 {
-    if (pinum < 0 || pinum > superBlock.num_inodes){
+    printf("got to server_lookup\n");
+    if (pinum < 0 || pinum > superBlock.num_inodes)
+    {
         printf("Parent inum out of range\n");
         return -1;
     }
 
-    if (!get_bit(inode_bitmap, pinum)){
+    if (!get_bit(inode_bitmap, pinum))
+    {
         printf("Parent inum is not in used\n");
         return -1;
     }
 
+    printf("got past error handling\n");
+
     inode_t *parent = inodes[pinum];
 
-    for (int i = 0; i < DIRECT_PTRS; i++) {
+    for (int i = 0; i < DIRECT_PTRS; i++)
+    {
         if (parent->direct[i] == ~0)
             continue;
 
-        for(int j = 0; j < MFS_BLOCK_SIZE; j += sizeof(dir_ent_t)){
-            dir_ent_t * curr_dir_ent;
-            curr_dir_ent = data_blocks + MFS_BLOCK_SIZE*parent->direct[i] + j;
-            if (!strcmp (curr_dir_ent->name, name)){
+        for (int j = 0; j < MFS_BLOCK_SIZE; j += sizeof(dir_ent_t))
+        {
+            dir_ent_t *curr_dir_ent;
+            curr_dir_ent = data_blocks + MFS_BLOCK_SIZE * parent->direct[i] + j;
+            if (!strcmp(curr_dir_ent->name, name))
+            {
                 res.rc = 0;
                 return curr_dir_ent->inum;
             }
@@ -275,6 +282,7 @@ int main(int argc, char *argv[])
     read(fileD, &superBlock, sizeof(super_t));
 
     server_init();
+    printf("got past server init\n");
 
     signal(SIGINT, intHandler);
 
@@ -300,8 +308,9 @@ int main(int argc, char *argv[])
         msg_t msg;
         UDP_Read(sd, &addr, (char *)&msg, sizeof(msg));
 
-        if(msg.func == LOOKUP)
+        if (msg.func == LOOKUP)
         {
+            printf("LOOKUP called\n");
             res.rc = server_lookup(msg.pinum, msg.name);
         }
 
@@ -312,6 +321,7 @@ int main(int argc, char *argv[])
 
         if (msg.func == SHUTDOWN)
         {
+            printf("shutdown called\n");
             server_shutdown();
             res.rc = 0;
         }
