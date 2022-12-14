@@ -61,7 +61,6 @@ int server_init()
 
         inodes[i] = &node;
     }
-
     // Set bits in the inode bitmap to 0
     void *inode_bitmap = malloc(superBlock.inode_bitmap_len * MFS_BLOCK_SIZE);
     memset(inode_bitmap, 0, MFS_BLOCK_SIZE * superBlock.inode_bitmap_len);
@@ -70,25 +69,33 @@ int server_init()
     void *data_bitmap = malloc(superBlock.data_bitmap_len * MFS_BLOCK_SIZE);
     memset(data_bitmap, 0, MFS_BLOCK_SIZE * superBlock.data_bitmap_len);
 
-    // //Set up root directory
-    // inodes[0].size = 0;
-    // inodes[0].type = MFS_DIRECTORY;
+    // Set up root directory
+    inode_t root;
+    root.size = 0;
+    root.type = MFS_DIRECTORY;
+    root.direct[0] = 0;
 
-    // // Update bitmaps
-    // set_bit((unsigned int *) (long) superBlock.inode_bitmap_addr, 0);
-    // inodes[0].direct[0] = 0;
-    // set_bit((unsigned int *) (long) superBlock.data_bitmap_addr, 0);
-    // //curr = ., parent = ..
-    // MFS_DirEnt_t * curr = (MFS_DirEnt_t *) (long) superBlock.data_region_addr;
+    inodes[0] = &root;
+
+    // Update bitmaps
+    set_bit(inode_bitmap, 0);
+    set_bit(data_bitmap, 0);
+
+    // TODO: malloc datablocks
+
+    //curr = ., parent = ..
+    // MFS_DirEnt_t *curr = (MFS_DirEnt_t *)(long)superBlock.data_region_addr;
     // strncpy(curr->name, ".", sizeof(curr->name));
     // curr->inum = 0;
-    // MFS_DirEnt_t * parent = (MFS_DirEnt_t *) (long) (superBlock.data_region_addr + sizeof(MFS_DirEnt_t));
+    // MFS_DirEnt_t *parent = (MFS_DirEnt_t *)(long)(superBlock.data_region_addr + sizeof(MFS_DirEnt_t));
     // strncpy(parent->name, "..", sizeof(curr->name));
     // parent->inum = 0;
     // //Fill in unused entries with inode -1, in case of remove
-    // for(int i = 2; i < MFS_BLOCK_SIZE/sizeof(MFS_DirEnt_t); i++){
-    //     MFS_DirEnt_t * unused_dir = (MFS_DirEnt_t *) (long) (superBlock.data_region_addr + i * sizeof(MFS_DirEnt_t));
-    //     unused_dir->inum = 0;
+    // for (int i = 2; i < MFS_BLOCK_SIZE / sizeof(MFS_DirEnt_t); i++)
+    // {
+    //     MFS_DirEnt_t *unused_dir = (MFS_DirEnt_t *)(long)(superBlock.data_region_addr + i * sizeof(MFS_DirEnt_t));
+    //     unused_dir->inum = -1;
+    //     strncpy(unused_dir, "", sizeof(unused_dir->name));
     // }
 
     fsync(fileD);
