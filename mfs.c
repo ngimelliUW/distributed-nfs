@@ -55,7 +55,7 @@ int MFS_Init(char *hostname, int port)
         return rc;
     }
 
-    fd = UDP_Open(port);
+    fd = UDP_Open(0);
     return 0;
 }
 
@@ -87,9 +87,7 @@ int MFS_Stat(int inum, MFS_Stat_t *m)
     msg.inum = inum;
     msg.m = m;
     send_req();
-
-
-    return -1;
+    return sres.rc;
 }
 
 /*
