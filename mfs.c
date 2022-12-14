@@ -19,6 +19,8 @@ void send_req()
     tv.tv_sec = 3;
     tv.tv_usec = 0;
 
+    UDP_Write(fd, &server_addr, (char *)&msg, sizeof(msg_t));
+
     int is_ready = select(fd + 1, &fds, NULL, NULL, &tv);
 
     if (is_ready)
@@ -159,5 +161,5 @@ int MFS_Shutdown()
     send_req();
 
     UDP_Close(fd);
-    return sres.rc;
+    return 0;
 }
