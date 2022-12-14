@@ -75,7 +75,7 @@ int MFS_Lookup(int pinum, char *name)
 
     send_req();
 
-    return -1;
+    return sres.rc;
 }
 
 /*

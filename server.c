@@ -106,6 +106,37 @@ int server_init()
     return 0;
 }
 
+
+int server_lookup(int pinum, char *name)
+{
+    if (pinum < 0 || pinum > superBlock.num_inodes){
+        printf("Parent inum out of range\n");
+        return -1;
+    }
+
+    if (!get_bit(inode_bitmap, pinum)){
+        printf("Parent inum is not in used\n");
+        return -1;
+    }
+
+    inode_t *parent = inodes[pinum];
+
+    for (int i = 0; i < DIRECT_PTRS; i++) {
+        if (parent->direct[i] == ~0)
+            continue;
+
+        for(int j = 0; j < MFS_BLOCK_SIZE; j += sizeof(dir_ent_t)){
+            dir_ent_t * curr_dir_ent;
+            curr_dir_ent = data_blocks + MFS_BLOCK_SIZE*parent->direct[i] + j;
+            if (!strcmp (curr_dir_ent->name, name)){
+                res.rc = 0;
+                return curr_dir_ent->inum;
+            }
+        }
+    }
+    return -1;
+}
+
 int server_stat(int inum, MFS_Stat_t *m)
 {
     // if (superBlock.num_inodes < inum || inum < 0)
@@ -123,17 +154,6 @@ int server_stat(int inum, MFS_Stat_t *m)
     // m->type = curr_inode.type;
     // m->size = curr_inode.size;
     return 0;
-}
-
-int server_lookup(int pinum, char *name)
-{
-    // inode_t in;
-    // long inode_address = (long)(fileD + superBlock.inode_region_addr + pinum * 128);
-    // memcpy(&in, (void *)inode_address, sizeof(inode_t));
-
-    //inode_t in = inodes[pinum];
-
-    return -1;
 }
 
 // int server_creat(int pinum, int type, char *name)
@@ -279,6 +299,11 @@ int main(int argc, char *argv[])
 
         msg_t msg;
         UDP_Read(sd, &addr, (char *)&msg, sizeof(msg));
+
+        if(msg.func == LOOKUP)
+        {
+            res.rc = server_lookup(msg.pinum, msg.name);
+        }
 
         if (msg.func == STAT)
         {
