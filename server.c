@@ -69,12 +69,10 @@ int server_init()
     memset(data_bitmap, 0, MFS_BLOCK_SIZE * superBlock.data_bitmap_len);
 
     // Set up root directory
-    inode_t root;
-    root.size = 0;
-    root.type = MFS_DIRECTORY;
-    root.direct[0] = 0;
-
-    inodes[0] = &root;
+    inodes[0] = malloc(sizeof(inode_t));
+    inodes[0]->size = 0;
+    inodes[0]->type = MFS_DIRECTORY;
+    inodes[0]->direct[0] = 0;
 
     // Update bitmaps
     set_bit(inode_bitmap, 0);
