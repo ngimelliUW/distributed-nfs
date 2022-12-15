@@ -133,8 +133,10 @@ int server_lookup(int pinum, char *name)
         for (int j = 0; j < MFS_BLOCK_SIZE; j += sizeof(dir_ent_t))
         {
             // dir_ent_t *curr_dir_ent;
+            printf("WE GOT HERE\n");
+            dir_ent_t curr_dir_ent = *((dir_ent_t *)(data_blocks + MFS_BLOCK_SIZE * parent->direct[i] + j));
+            printf("We got past\n");
 
-            dir_ent_t curr_dir_ent = *(dir_ent_t *)(data_blocks + MFS_BLOCK_SIZE * parent->direct[i] + j);
             printf("name: %s", curr_dir_ent.name);
 
             // if (!curr_dir_ent.name || !name)
