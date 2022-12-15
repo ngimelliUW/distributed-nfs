@@ -49,7 +49,7 @@ int server_init()
 {
     inodes = malloc(superBlock.num_inodes * sizeof(inode_t *));
 
-    for (int i = 1; i < superBlock.num_inodes; i++)
+    for (int i = 0; i < superBlock.num_inodes; i++)
     {
         inodes[i] = malloc(sizeof(inode_t));
         inodes[i]->size = 0;
@@ -57,7 +57,8 @@ int server_init()
 
         for (int j = 0; j < DIRECT_PTRS; j++)
         {
-            inodes[i]->direct[j] = ~0;
+            inodes[i]->direct[j] = -1;
+            //printf("setting inodes[%d]->direct[%d] to %d\n", i, j, inodes[i]->direct[j]);
         }
     }
     // Set bits in the inode bitmap to 0
@@ -116,8 +117,10 @@ int server_lookup(int pinum, char *name)
 
     inode_t *parent = inodes[pinum];
 
+    printf("looking for file %s...\n", name);
     for (int i = 0; i < DIRECT_PTRS; i++)
     {
+        printf("looking at parent->direct[%d] = %d\n", i, parent->direct[i]);
         if (parent->direct[i] == ~0)
             continue;
 
@@ -270,6 +273,8 @@ int server_creat(int pinum, int type, char *name)
             }
         }
     }
+
+    parent->size += sizeof(dir_ent_t);
     return 0;
 }
 
