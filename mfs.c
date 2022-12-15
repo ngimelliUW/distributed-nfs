@@ -132,6 +132,8 @@ int MFS_Read(int inum, char *buffer, int offset, int nbytes)
 */
 int MFS_Creat(int pinum, int type, char *name)
 {
+    if (strlen(name) > 28)
+        return -1;
     msg.func = CREAT;
     msg.pinum = pinum;
     msg.type = type;
@@ -148,6 +150,8 @@ int MFS_Creat(int pinum, int type, char *name)
 */
 int MFS_Unlink(int pinum, char *name)
 {
+    if (strlen(name) > 28)
+        return -1;
     msg.pinum = pinum;
     msg.func = UNLINK;
     strncpy(msg.name, name, sizeof(name));
