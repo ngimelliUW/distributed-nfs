@@ -214,6 +214,7 @@ int server_creat(int pinum, int type, char *name)
                         unused_dir->inum = -1;
                         strncpy(unused_dir->name, "", 28);
                     }
+                    parent->direct[i] = j;
                     i = DIRECT_PTRS;
                     break;
                 }
