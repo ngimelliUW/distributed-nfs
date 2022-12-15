@@ -117,10 +117,10 @@ int server_lookup(int pinum, char *name)
 
     inode_t *parent = inodes[pinum];
 
-    printf("looking for file %s...\n", name);
+    //printf("looking for file %s...\n", name);
     for (int i = 0; i < DIRECT_PTRS; i++)
     {
-        printf("looking at parent->direct[%d] = %d\n", i, parent->direct[i]);
+        //printf("looking at parent->direct[%d] = %d\n", i, parent->direct[i]);
         if (parent->direct[i] == ~0)
             continue;
 
@@ -258,15 +258,17 @@ int server_creat(int pinum, int type, char *name)
                 inodes[next_free_inode]->direct[0] = i;
                 inodes[next_free_inode]->size = 2 * sizeof(dir_ent_t);
 
-                dir_ent_t *temp;
-                (temp + MFS_BLOCK_SIZE * i)->inum = next_free_inode;
-                strncpy((temp + MFS_BLOCK_SIZE * i)->name, ".", 28);
-                (temp + MFS_BLOCK_SIZE * i + sizeof(dir_ent_t))->inum = pinum;
-                strncpy((temp + MFS_BLOCK_SIZE * i)->name, "..", 28);
+                dir_ent_t *temp = data_blocks + MFS_BLOCK_SIZE * i;
+                temp->inum = next_free_inode;
+                strncpy(temp->name, ".", 28);
 
-                for (int j = 2; j < MFS_BLOCK_SIZE / sizeof(dir_ent_t); j += sizeof(dir_ent_t))
+                dir_ent_t *temp2 = data_blocks + MFS_BLOCK_SIZE * i + sizeof(dir_ent_t);
+                temp2->inum = pinum;
+                strncpy(temp2->name, "..", 28);
+
+                for (int j = 2; j < MFS_BLOCK_SIZE / sizeof(dir_ent_t); j++)
                 {
-                    temp = data_blocks + MFS_BLOCK_SIZE * i + j;
+                    temp = data_blocks + MFS_BLOCK_SIZE * i + j * sizeof(dir_ent_t);
                     temp->inum = -1;
                     strncpy(temp->name, "", 28);
                 }
