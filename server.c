@@ -137,20 +137,20 @@ int server_lookup(int pinum, char *name)
 
 int server_stat(int inum, MFS_Stat_t *m)
 {
-    // if (superBlock.num_inodes < inum || inum < 0)
-    // {
-    //     printf("This inum is not in the inode table");
-    //     return -1;
-    // }
-    // if (!get_bit((unsigned int *)(long)superBlock.inode_bitmap_addr, inum))
-    // { //If the bit for this inum is 0
-    //     printf("There's no allocated file at this inode");
-    //     return -1;
-    // }
-    // res.rc = 0;
-    // inode_t curr_inode = inodes[inum];
-    // m->type = curr_inode.type;
-    // m->size = curr_inode.size;
+    if (superBlock.num_inodes < inum || inum < 0)
+    {
+        printf("This inum is not in the inode table");
+        return -1;
+    }
+    if (!get_bit(inode_bitmap, inum))
+    { //If the bit for this inum is 0
+        printf("There's no allocated file at this inode");
+        return -1;
+    }
+    res.rc = 0;
+    inode_t * curr_inode = inodes[inum];
+    m->type = curr_inode->type;
+    m->size = curr_inode->size;
     return 0;
 }
 
@@ -273,7 +273,6 @@ int main(int argc, char *argv[])
     read(fileD, &superBlock, sizeof(super_t));
 
     server_init();
-    printf("got past server init\n");
 
     signal(SIGINT, intHandler);
 
@@ -303,12 +302,11 @@ int main(int argc, char *argv[])
         if (msg.func == LOOKUP)
         {
             res.rc = server_lookup(msg.pinum, msg.name);
-            printf("Server lookup returned %d\n", res.rc);
         }
 
         if (msg.func == STAT)
         {
-            server_stat(msg.inum, msg.m);
+            res.rc = server_stat(msg.inum, msg.m);
         }
 
         if (msg.func == SHUTDOWN)
