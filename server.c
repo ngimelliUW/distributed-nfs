@@ -127,11 +127,13 @@ int server_lookup(int pinum, char *name)
 
             if (!strncmp(curr_dir_ent->name, name, 28))
             {
+                printf("found file with name: %s\n", curr_dir_ent->name);
                 res.rc = 0;
                 return curr_dir_ent->inum;
             }
         }
     }
+    printf("could not find file %s\n", name);
     return -1;
 }
 
@@ -148,7 +150,7 @@ int server_stat(int inum, MFS_Stat_t *m)
         return -1;
     }
     res.rc = 0;
-    inode_t * curr_inode = inodes[inum];
+    inode_t *curr_inode = inodes[inum];
     m->type = curr_inode->type;
     m->size = curr_inode->size;
     return 0;
@@ -168,29 +170,106 @@ int server_creat(int pinum, int type, char *name)
         return -1;
     }
 
-    inode_t* parent = inodes[pinum];
-    
-    // printf("Data block in creat: %ld\n",(long)  data_blocks);
-    for (int i = 0; i < DIRECT_PTRS; i ++){
-        if (parent->direct[i] != -1){
-            for (int j = 0; j < MFS_BLOCK_SIZE; j += sizeof(dir_ent_t)){
-                // printf("Calced addr: %ld\n", (long) (data_blocks + MFS_BLOCK_SIZE * parent->direct[i] + j));
-                dir_ent_t * temp = data_blocks + MFS_BLOCK_SIZE * parent->direct[i] + j;
-                // printf("Temp addr: %ld\n", (long) temp);
-                printf("Name : %s\n", temp->name);
-                if(temp->inum == -1) {
-                    i = 35;
+    inode_t *parent = inodes[pinum];
+    if (parent->type != MFS_DIRECTORY)
+    {
+        printf("passed a parent that is node a directory\n");
+        return -1;
+    }
+
+    void *free_space;
+    for (int i = 0; i < DIRECT_PTRS; i++)
+    {
+        if (parent->direct[i] != -1)
+        {
+            for (int j = 0; j < MFS_BLOCK_SIZE; j += sizeof(dir_ent_t))
+            {
+                dir_ent_t *temp = data_blocks + MFS_BLOCK_SIZE * parent->direct[i] + j;
+                if (temp->inum == -1)
+                {
+                    free_space = temp;
+                    i = DIRECT_PTRS; // exit out of outer-for loop
                     break;
                 }
             }
         }
-        if(parent->direct[i] == -1) {
-            
+        else
+        {
+            //Init a data block
+            for (int j = 0; j < superBlock.num_data; j++)
+            {
+                if (get_bit(data_bitmap, j) != 0)
+                {
+                    continue;
+                }
+                else
+                {
+                    set_bit(data_bitmap, j);
+                    free_space = data_blocks + MFS_BLOCK_SIZE * j;
+
+                    // iterate through data block and init blank entries:
+                    for (int k = 0; k < MFS_BLOCK_SIZE / sizeof(dir_ent_t); k++)
+                    {
+                        dir_ent_t *unused_dir = (free_space + k * sizeof(dir_ent_t));
+                        unused_dir->inum = -1;
+                        strncpy(unused_dir->name, "", 28);
+                    }
+                    i = DIRECT_PTRS;
+                    break;
+                }
+            }
         }
-        
     }
 
-    return -1;
+    dir_ent_t *new_entry = free_space;
+    strncpy(new_entry->name, name, 28);
+
+    // find next free inode
+    int next_free_inode = -1;
+    for (int i = 0; i < superBlock.num_inodes; i++)
+    {
+        if (get_bit(inode_bitmap, i) == 0)
+        {
+            next_free_inode = i;
+            set_bit(inode_bitmap, i);
+            break;
+        }
+    }
+
+    new_entry->inum = next_free_inode;
+    inodes[next_free_inode]->type = type;
+    // handle file if its a directory:
+    if (type == MFS_DIRECTORY)
+    {
+        // find next free datablock:
+        for (int i = 0; i < superBlock.num_data; i++)
+        {
+            if (get_bit(data_bitmap, i) == 1)
+            {
+                continue;
+            }
+            else
+            {
+                set_bit(data_bitmap, i);
+                inodes[next_free_inode]->direct[0] = i;
+                inodes[next_free_inode]->size = 2 * sizeof(dir_ent_t);
+
+                dir_ent_t *temp;
+                (temp + MFS_BLOCK_SIZE * i)->inum = next_free_inode;
+                strncpy((temp + MFS_BLOCK_SIZE * i)->name, ".", 28);
+                (temp + MFS_BLOCK_SIZE * i + sizeof(dir_ent_t))->inum = pinum;
+                strncpy((temp + MFS_BLOCK_SIZE * i)->name, "..", 28);
+
+                for (int j = 2; j < MFS_BLOCK_SIZE / sizeof(dir_ent_t); j += sizeof(dir_ent_t))
+                {
+                    temp = data_blocks + MFS_BLOCK_SIZE * i + j;
+                    temp->inum = -1;
+                    strncpy(temp->name, "", 28);
+                }
+            }
+        }
+    }
+    return 0;
 }
 
 int server_shutdown()
@@ -198,7 +277,8 @@ int server_shutdown()
     fsync(fileD);
     close(fileD);
     //Free mallocs
-    for(int i = 0; i < superBlock.num_inodes; i++) free(inodes[i]);
+    for (int i = 0; i < superBlock.num_inodes; i++)
+        free(inodes[i]);
     free(inodes);
     free(inode_bitmap);
     free(data_bitmap);
@@ -253,9 +333,10 @@ int main(int argc, char *argv[])
             res.rc = server_lookup(msg.pinum, msg.name);
         }
 
-        if (msg.func == CREAT) {
+        if (msg.func == CREAT)
+        {
             res.rc = server_creat(msg.pinum, msg.type, msg.name);
-        } 
+        }
 
         if (msg.func == STAT)
         {
