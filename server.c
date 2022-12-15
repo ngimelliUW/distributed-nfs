@@ -51,16 +51,14 @@ int server_init()
 
     for (int i = 1; i < superBlock.num_inodes; i++)
     {
-        inode_t node;
-        node.size = 0;
-        node.type = 0;
+        inodes[i] = malloc(sizeof(inode_t));
+        inodes[i]->size = 0;
+        inodes[i]->type = 0;
 
         for (int j = 0; j < DIRECT_PTRS; j++)
         {
-            node.direct[j] = ~0;
+            inodes[i]->direct[j] = ~0;
         }
-
-        inodes[i] = &node;
     }
     // Set bits in the inode bitmap to 0
     inode_bitmap = malloc(superBlock.inode_bitmap_len * MFS_BLOCK_SIZE);
