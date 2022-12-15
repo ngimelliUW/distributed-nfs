@@ -70,7 +70,7 @@ int server_init()
 
     // Set up root directory
     inodes[0] = malloc(sizeof(inode_t));
-    inodes[0]->size = 0;
+    inodes[0]->size = 2 * sizeof(dir_ent_t); //Two dot entries
     inodes[0]->type = MFS_DIRECTORY;
     inodes[0]->direct[0] = 0;
 
@@ -121,7 +121,7 @@ int server_lookup(int pinum, char *name)
         if (parent->direct[i] == ~0)
             continue;
 
-        for (int j = 0; j < MFS_BLOCK_SIZE; j += sizeof(dir_ent_t))
+        for (int j = 0; j < parent->size; j += sizeof(dir_ent_t))
         {
             dir_ent_t *curr_dir_ent = data_blocks + MFS_BLOCK_SIZE * parent->direct[i] + j;
 
