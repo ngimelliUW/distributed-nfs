@@ -8,7 +8,7 @@ int sd;
 // client code
 int main(int argc, char *argv[])
 {
-    struct sockaddr_in addrSnd, addrRcv;
+    // struct sockaddr_in addrSnd, addrRcv;
 
     // int sd = UDP_Open(20000);
     // int rc = UDP_FillSockAddr(&addrSnd, "localhost", 10003);
@@ -23,16 +23,16 @@ int main(int argc, char *argv[])
 
     MFS_Shutdown();
 
-    printf("client:: send message [%s]\n", message);
-    int rc = UDP_Write(sd, &addrSnd, message, BUFFER_SIZE);
-    if (rc < 0)
-    {
-        printf("client:: failed to send\n");
-        exit(1);
-    }
+    // printf("client:: send message [%s]\n", message);
+    // int rc = UDP_Write(sd, &addrSnd, message, BUFFER_SIZE);
+    // if (rc < 0)
+    // {
+    //     printf("client:: failed to send\n");
+    //     exit(1);
+    // }
 
-    printf("client:: wait for reply...\n");
-    rc = UDP_Read(sd, &addrRcv, message, BUFFER_SIZE);
-    printf("client:: got reply [size:%d contents:(%s)\n", rc, message);
+    // printf("client:: wait for reply...\n");
+    // rc = UDP_Read(sd, &addrRcv, message, BUFFER_SIZE);
+    // printf("client:: got reply [size:%d contents:(%s)\n", rc, message);
     return 0;
 }

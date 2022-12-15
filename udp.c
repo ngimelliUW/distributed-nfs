@@ -51,7 +51,7 @@ int UDP_FillSockAddr(struct sockaddr_in *addr, char *hostname, int port) {
 
 int UDP_Write(int fd, struct sockaddr_in *addr, char *buffer, int n) {
     int addr_len = sizeof(struct sockaddr_in);
-    msg_t * temp = (msg_t *)buffer;
+    // msg_t * temp = (msg_t *)buffer;
     // printf("Sending %d as the func value\n", temp->func);
     int rc = sendto(fd, buffer, n, 0, (struct sockaddr *) addr, addr_len);
     return rc;
@@ -60,8 +60,8 @@ int UDP_Write(int fd, struct sockaddr_in *addr, char *buffer, int n) {
 int UDP_Read(int fd, struct sockaddr_in *addr, char *buffer, int n) {
     int len = sizeof(struct sockaddr_in); 
     int rc = recvfrom(fd, buffer, n, 0, (struct sockaddr *) addr, (socklen_t *) &len);
-    msg_t * temp = (msg_t *)buffer;
-    printf("Received %d as the func value\n", temp->func);
+    // msg_t * temp = (msg_t *)buffer;
+    // printf("Received %d as the func value\n", temp->func);
     return rc;
 }
 

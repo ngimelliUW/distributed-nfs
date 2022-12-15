@@ -293,13 +293,13 @@ int main(int argc, char *argv[])
     while (1)
     {
         res.rc = -1; // default return val REMINDER moved inside while loop
-        printf("server:: waiting...\n");
+        // printf("server:: waiting...\n");
         struct sockaddr_in addr;
 
         msg_t msg;
         UDP_Read(sd, &addr, (char *)&msg, sizeof(msg_t));
 
-        printf("msg.func is %d\n", msg.func);
+        // printf("msg.func is %d\n", msg.func);
         if (msg.func == LOOKUP)
         {
             res.rc = server_lookup(msg.pinum, msg.name);
@@ -327,17 +327,17 @@ int main(int argc, char *argv[])
             exit(0);
         }
 
-        char message[BUFFER_SIZE];
-        printf("server:: waiting...\n");
-        int rc = UDP_Read(sd, &addr, message, BUFFER_SIZE);
-        printf("server:: read message [size:%d contents:(%s)]\n", rc, message);
-        if (rc > 0)
-        {
-            char reply[BUFFER_SIZE];
-            sprintf(reply, "goodbye world");
-            rc = UDP_Write(sd, &addr, reply, BUFFER_SIZE);
-            printf("server:: reply\n");
-        }
+        // char message[BUFFER_SIZE];
+        // printf("server:: waiting...\n");
+        // int rc = UDP_Read(sd, &addr, message, BUFFER_SIZE);
+        // printf("server:: read message [size:%d contents:(%s)]\n", rc, message);
+        // if (rc > 0)
+        // {
+        //     char reply[BUFFER_SIZE];
+        //     sprintf(reply, "goodbye world");
+        //     rc = UDP_Write(sd, &addr, reply, BUFFER_SIZE);
+        //     printf("server:: reply\n");
+        // }
     }
 
     return 0;
