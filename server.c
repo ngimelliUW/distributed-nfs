@@ -254,6 +254,12 @@ int server_shutdown()
 {
     fsync(fileD);
     close(fileD);
+    //Free mallocs
+    for(int i = 0; i < superBlock.num_inodes; i++) free(inodes[i]);
+    free(inodes);
+    free(inode_bitmap);
+    free(data_bitmap);
+    free(data_blocks);
     return 0;
 }
 
