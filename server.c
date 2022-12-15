@@ -280,6 +280,58 @@ int server_creat(int pinum, int type, char *name)
     return 0;
 }
 
+int server_unlink(int pinum, char *name){
+    if (pinum < 0 || pinum > superBlock.num_inodes)
+    {
+        printf("Parent inum is out of range");
+        return -1;
+    }
+
+    if (!get_bit(inode_bitmap, pinum))
+    {
+        printf("Parent inum is unallocated");
+        return -1;
+    }
+    inode_t * parent = inodes[pinum];
+
+    int entry_inum = -1;
+    for (int i = 0; i < DIRECT_PTRS; i++) { //Looking for the entry
+        for (int j = 0; j < MFS_BLOCK_SIZE; j += sizeof(dir_ent_t)){
+            dir_ent_t * curr = data_blocks + MFS_BLOCK_SIZE * parent->direct[i] + j;
+            if(strncmp(curr->name, name, 28) == 0){
+                entry_inum = curr->inum;
+                i = DIRECT_PTRS; //Exit outer loop
+                break;
+            }
+        }
+    }
+    
+    if(entry_inum == -1){ //Not found
+        return 0;
+    }
+
+    inode_t * entry_inode = inodes[entry_inum];
+
+    if(entry_inode->type == MFS_DIRECTORY){ //Recursively remove everything in the directory
+        for(int i = 0; i < DIRECT_PTRS; i++){
+            for (int j = 0; j < MFS_BLOCK_SIZE; j += sizeof(dir_ent_t)){
+                dir_ent_t * curr = data_blocks + MFS_BLOCK_SIZE * parent->direct[i] + j;
+                server_unlink(entry_inum, curr->name);
+            }
+        }
+    }
+
+    clear_bit(inode_bitmap, entry_inum);
+    for(int i = 0; i < DIRECT_PTRS; i++){
+        clear_bit(data_bitmap, entry_inode->direct[i]);
+        entry_inode->direct[i] = -1;
+    }
+    
+    entry_inode->type = 0;
+    entry_inode->type = 0;
+    return 0;
+}
+
 int server_shutdown()
 {
     fsync(fileD);
@@ -351,6 +403,10 @@ int main(int argc, char *argv[])
             res.rc = server_stat(msg.inum, msg.m);
         }
 
+        if (msg.func == UNLINK)
+        {
+            res.rc = server_unlink(msg.pinum, msg.name);
+        }
         if (msg.func == SHUTDOWN)
         {
             server_shutdown();

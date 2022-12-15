@@ -156,7 +156,7 @@ int MFS_Unlink(int pinum, char *name)
     msg.func = UNLINK;
     strncpy(msg.name, name, sizeof(name));
     send_req();
-    return -1;
+    return sres.rc;
 }
 
 /**
