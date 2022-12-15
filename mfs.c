@@ -69,10 +69,8 @@ int MFS_Lookup(int pinum, char *name)
 {
     msg.func = LOOKUP;
     msg.pinum = pinum;
-    printf("name is %s\n", name);
     strncpy(msg.name, name, 28);
-    printf("msg.name is %s\n", msg.name);
-
+    // printf("msg func before = %d\n", msg.func);
     send_req();
 
     return sres.rc;

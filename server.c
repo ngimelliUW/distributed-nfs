@@ -104,20 +104,15 @@ int server_init()
 
 int server_lookup(int pinum, char *name)
 {
-    printf("got to server_lookup\n");
     if (pinum < 0 || pinum > superBlock.num_inodes)
     {
-        printf("Parent inum out of range\n");
         return -1;
     }
 
     if (!get_bit(inode_bitmap, pinum))
     {
-        printf("Parent inum is not in used\n");
         return -1;
     }
-
-    printf("got past error handling\n");
 
     inode_t *parent = inodes[pinum];
 
@@ -129,8 +124,6 @@ int server_lookup(int pinum, char *name)
         for (int j = 0; j < MFS_BLOCK_SIZE; j += sizeof(dir_ent_t))
         {
             dir_ent_t *curr_dir_ent = data_blocks + MFS_BLOCK_SIZE * parent->direct[i] + j;
-            printf("curr_dir_ent is : %s\n", curr_dir_ent->name);
-            // printf("name is : %s\n", *name);
 
             if (!strncmp(curr_dir_ent->name, name, 28))
             {
@@ -138,7 +131,6 @@ int server_lookup(int pinum, char *name)
                 return curr_dir_ent->inum;
             }
         }
-        printf("got to end of func\n");
     }
     return -1;
 }
@@ -305,12 +297,13 @@ int main(int argc, char *argv[])
         struct sockaddr_in addr;
 
         msg_t msg;
-        UDP_Read(sd, &addr, (char *)&msg, sizeof(msg));
-        printf("Func = %d\n", msg.func);
+        UDP_Read(sd, &addr, (char *)&msg, sizeof(msg_t));
+
+        printf("msg.func is %d\n", msg.func);
         if (msg.func == LOOKUP)
         {
-            printf("msg.name is %s\n", msg.name);
             res.rc = server_lookup(msg.pinum, msg.name);
+            printf("Server lookup returned %d\n", res.rc);
         }
 
         if (msg.func == STAT)
@@ -320,7 +313,6 @@ int main(int argc, char *argv[])
 
         if (msg.func == SHUTDOWN)
         {
-            printf("shutdown called\n");
             server_shutdown();
             res.rc = 0;
         }

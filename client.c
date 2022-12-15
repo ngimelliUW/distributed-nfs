@@ -17,9 +17,10 @@ int main(int argc, char *argv[])
     sprintf(message, "hello world");
 
     sd = MFS_Init("localhost", 72727);
-    printf("got past init\n");
+
     MFS_Lookup(0, ".");
-    //printf("%d", test);
+    MFS_Lookup(0, "..");
+
     MFS_Shutdown();
 
     printf("client:: send message [%s]\n", message);
