@@ -63,11 +63,11 @@ int server_init()
         inodes[i] = &node;
     }
     // Set bits in the inode bitmap to 0
-    void *inode_bitmap = malloc(superBlock.inode_bitmap_len * MFS_BLOCK_SIZE);
+    inode_bitmap = malloc(superBlock.inode_bitmap_len * MFS_BLOCK_SIZE);
     memset(inode_bitmap, 0, MFS_BLOCK_SIZE * superBlock.inode_bitmap_len);
 
     // set bits in data bitmap to 0
-    void *data_bitmap = malloc(superBlock.data_bitmap_len * MFS_BLOCK_SIZE);
+    data_bitmap = malloc(superBlock.data_bitmap_len * MFS_BLOCK_SIZE);
     memset(data_bitmap, 0, MFS_BLOCK_SIZE * superBlock.data_bitmap_len);
 
     // Set up root directory
@@ -87,11 +87,11 @@ int server_init()
 
     //curr = ., parent = ..
     MFS_DirEnt_t *curr = data_blocks;
-    strncpy(curr->name, ".", sizeof(curr->name));
+    strncpy(curr->name, ".", 28);
     curr->inum = 0;
 
     MFS_DirEnt_t *parent = data_blocks + sizeof(MFS_DirEnt_t);
-    strncpy(parent->name, "..", sizeof(curr->name));
+    strncpy(parent->name, "..", 28);
     parent->inum = 0;
 
     // Fill in unused entries with inode -1, in case of remove
@@ -99,7 +99,7 @@ int server_init()
     {
         MFS_DirEnt_t *unused_dir = (data_blocks + i * sizeof(MFS_DirEnt_t));
         unused_dir->inum = -1;
-        strncpy(unused_dir->name, "", sizeof(unused_dir->name));
+        strncpy(unused_dir->name, "", 28);
     }
 
     fsync(fileD);
@@ -115,11 +115,11 @@ int server_lookup(int pinum, char *name)
         return -1;
     }
 
-    // if (!get_bit(inode_bitmap, pinum))
-    // {
-    //     printf("Parent inum is not in used\n");
-    //     return -1;
-    // }
+    if (!get_bit(inode_bitmap, pinum))
+    {
+        printf("Parent inum is not in used\n");
+        return -1;
+    }
 
     printf("got past error handling\n");
 
