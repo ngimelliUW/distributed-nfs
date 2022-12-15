@@ -306,7 +306,7 @@ int main(int argc, char *argv[])
 
         msg_t msg;
         UDP_Read(sd, &addr, (char *)&msg, sizeof(msg));
-
+        printf("Func = %d\n", msg.func);
         if (msg.func == LOOKUP)
         {
             printf("msg.name is %s\n", msg.name);

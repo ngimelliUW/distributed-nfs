@@ -43,7 +43,6 @@ void send_req()
         printf("timed out. trying req again\n");
         send_req();
     }
-    UDP_Write(fd, &server_addr, (char *)&msg, sizeof(msg_t));
 }
 
 //  takes a host name and port number and uses those to find the server exporting the file system
@@ -70,7 +69,6 @@ int MFS_Lookup(int pinum, char *name)
 {
     msg.func = LOOKUP;
     msg.pinum = pinum;
-    msg.name = malloc(28);
     printf("name is %s\n", name);
     strncpy(msg.name, name, 28);
     printf("msg.name is %s\n", msg.name);
