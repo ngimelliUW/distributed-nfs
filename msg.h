@@ -14,7 +14,6 @@ typedef struct __msg_t
     int port;
     int pinum;
     char name[28];
-    char name[28];
     int inum;
     MFS_Stat_t *m;
     char buffer[MFS_BLOCK_SIZE];

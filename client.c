@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
     char message[BUFFER_SIZE];
     sprintf(message, "hello world");
 
-    sd = MFS_Init("localhost", 10004);
+    sd = MFS_Init("localhost", 72727);
     printf("got past init\n");
     MFS_Lookup(0, ".");
     //printf("%d", test);
