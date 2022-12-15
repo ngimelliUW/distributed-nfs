@@ -123,24 +123,39 @@ int server_lookup(int pinum, char *name)
 
     printf("got past error handling\n");
 
-    //inode_t *parent = inodes[pinum];
+    inode_t *parent = inodes[pinum];
 
-    // for (int i = 0; i < DIRECT_PTRS; i++)
-    // {
-    //     if (parent->direct[i] == ~0)
-    //         continue;
+    for (int i = 0; i < DIRECT_PTRS; i++)
+    {
+        if (parent->direct[i] == ~0)
+            continue;
 
-    //     for (int j = 0; j < MFS_BLOCK_SIZE; j += sizeof(dir_ent_t))
-    //     {
-    //         dir_ent_t *curr_dir_ent;
-    //         curr_dir_ent = data_blocks + MFS_BLOCK_SIZE * parent->direct[i] + j;
-    //         if (!strcmp(curr_dir_ent->name, name))
-    //         {
-    //             res.rc = 0;
-    //             return curr_dir_ent->inum;
-    //         }
-    //     }
-    // }
+        for (int j = 0; j < MFS_BLOCK_SIZE; j += sizeof(dir_ent_t))
+        {
+            // dir_ent_t *curr_dir_ent;
+
+            dir_ent_t curr_dir_ent = *(dir_ent_t *)(data_blocks + MFS_BLOCK_SIZE * parent->direct[i] + j);
+            printf("name: %s", curr_dir_ent.name);
+
+            // if (!curr_dir_ent.name || !name)
+            //     continue;
+
+            if (name == NULL)
+                printf("Null string\n");
+            else
+                printf("Not null\n");
+            char test[28];
+            memcpy(&test, name, 28);
+            printf("succeeded in memcp\n");
+            // if (!strncmp(curr_dir_ent.name, name, 28))
+            if (!strncmp(test, name, 28))
+            {
+                res.rc = 0;
+                return curr_dir_ent.inum;
+            }
+        }
+        printf("got to end of func\n");
+    }
     return -1;
 }
 
