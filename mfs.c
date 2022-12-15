@@ -71,7 +71,9 @@ int MFS_Lookup(int pinum, char *name)
     msg.func = LOOKUP;
     msg.pinum = pinum;
     msg.name = malloc(28);
+    printf("name is %s\n", name);
     strncpy(msg.name, name, 28);
+    printf("msg.name is %s\n", msg.name);
 
     send_req();
 

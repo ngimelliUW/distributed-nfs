@@ -128,28 +128,14 @@ int server_lookup(int pinum, char *name)
 
         for (int j = 0; j < MFS_BLOCK_SIZE; j += sizeof(dir_ent_t))
         {
-            // dir_ent_t *curr_dir_ent;
-            printf("WE GOT HERE\n");
-            dir_ent_t curr_dir_ent = *((dir_ent_t *)(data_blocks + MFS_BLOCK_SIZE * parent->direct[i] + j));
-            printf("We got past\n");
+            dir_ent_t *curr_dir_ent = data_blocks + MFS_BLOCK_SIZE * parent->direct[i] + j;
+            printf("curr_dir_ent is : %s\n", curr_dir_ent->name);
+            // printf("name is : %s\n", *name);
 
-            printf("name: %s", curr_dir_ent.name);
-
-            // if (!curr_dir_ent.name || !name)
-            //     continue;
-
-            if (name == NULL)
-                printf("Null string\n");
-            else
-                printf("Not null\n");
-            char test[28];
-            memcpy(&test, name, 28);
-            printf("succeeded in memcp\n");
-            // if (!strncmp(curr_dir_ent.name, name, 28))
-            if (!strncmp(test, name, 28))
+            if (!strncmp(curr_dir_ent->name, name, 28))
             {
                 res.rc = 0;
-                return curr_dir_ent.inum;
+                return curr_dir_ent->inum;
             }
         }
         printf("got to end of func\n");
@@ -323,7 +309,7 @@ int main(int argc, char *argv[])
 
         if (msg.func == LOOKUP)
         {
-            printf("LOOKUP called\n");
+            printf("msg.name is %s\n", msg.name);
             res.rc = server_lookup(msg.pinum, msg.name);
         }
 
