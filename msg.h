@@ -11,13 +11,12 @@
 
 typedef struct __msg_t
 {
-    char *hostname;
     int port;
     int pinum;
-    char *name;
+    char name[28];
     int inum;
     MFS_Stat_t *m;
-    char *buffer;
+    char buffer[MFS_BLOCK_SIZE];
     int offset;
     int nbytes;
     int type;
