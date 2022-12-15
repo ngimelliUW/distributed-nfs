@@ -21,6 +21,7 @@ int main(int argc, char *argv[])
     MFS_Lookup(0, ".");
     MFS_Lookup(0, "..");
 
+    MFS_Creat(0, MFS_REGULAR_FILE, "osu");
     MFS_Shutdown();
 
     // printf("client:: send message [%s]\n", message);

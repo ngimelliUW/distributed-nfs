@@ -82,18 +82,18 @@ int server_init()
     data_blocks = malloc(superBlock.num_data * MFS_BLOCK_SIZE);
 
     //curr = ., parent = ..
-    MFS_DirEnt_t *curr = data_blocks;
+    dir_ent_t *curr = data_blocks;
     strncpy(curr->name, ".", 28);
     curr->inum = 0;
 
-    MFS_DirEnt_t *parent = data_blocks + sizeof(MFS_DirEnt_t);
+    dir_ent_t *parent = data_blocks + sizeof(dir_ent_t);
     strncpy(parent->name, "..", 28);
     parent->inum = 0;
 
     // Fill in unused entries with inode -1, in case of remove
-    for (int i = 2; i < MFS_BLOCK_SIZE / sizeof(MFS_DirEnt_t); i++)
+    for (int i = 2; i < MFS_BLOCK_SIZE / sizeof(dir_ent_t); i++)
     {
-        MFS_DirEnt_t *unused_dir = (data_blocks + i * sizeof(MFS_DirEnt_t));
+        dir_ent_t *unused_dir = (data_blocks + i * sizeof(dir_ent_t));
         unused_dir->inum = -1;
         strncpy(unused_dir->name, "", 28);
     }
@@ -162,7 +162,7 @@ int server_creat(int pinum, int type, char *name)
         return -1;
     }
 
-    if (!get_bit((unsigned int *)(long)superBlock.inode_bitmap_addr, pinum))
+    if (!get_bit(inode_bitmap, pinum))
     {
         printf("Parent inum is unallocated");
         return -1;
@@ -170,87 +170,25 @@ int server_creat(int pinum, int type, char *name)
 
     inode_t* parent = inodes[pinum];
     
+    // printf("Data block in creat: %ld\n",(long)  data_blocks);
     for (int i = 0; i < DIRECT_PTRS; i ++){
-        if(parent->direct[i] == -1) continue;
-        // if()
+        if (parent->direct[i] != -1){
+            for (int j = 0; j < MFS_BLOCK_SIZE; j += sizeof(dir_ent_t)){
+                // printf("Calced addr: %ld\n", (long) (data_blocks + MFS_BLOCK_SIZE * parent->direct[i] + j));
+                dir_ent_t * temp = data_blocks + MFS_BLOCK_SIZE * parent->direct[i] + j;
+                // printf("Temp addr: %ld\n", (long) temp);
+                printf("Name : %s\n", temp->name);
+                if(temp->inum == -1) {
+                    i = 35;
+                    break;
+                }
+            }
+        }
+        if(parent->direct[i] == -1) {
+            
+        }
+        
     }
-    // // long inode_address = (long)(fileD + superBlock.inode_region_addr + pinum * 128);
-    // // memcpy(&parent, (void *)inode_address, sizeof(inode_t));
-
-    // char pblock[MFS_BLOCK_SIZE];
-    // // loop through parent inodes pointers:
-    // for (int i = 0; i < DIRECT_PTRS; i++)
-    // {
-    //     if (parent.direct[i] == ~0) //Unsigned -1 = 32 1s. ~0 = 32 1s. Unused directories are initialized to -1 in his initfs(). REMINDER
-    //         continue;
-
-    //     int offset;
-    //     dir_ent_t *entry;
-    //     for (offset = 0; offset < MFS_BLOCK_SIZE; offset += sizeof(dir_ent_t))
-    //     {
-    //         entry = (dir_ent_t *)(pblock + offset);
-    //         if (entry->inum != -1)
-    //             continue;
-
-    //         lseek(fileD, parent.direct[i], SEEK_SET);
-    //         read(fileD, pblock, MFS_BLOCK_SIZE);
-
-    //         int next_idx = -1;
-    //         // find first free inode:
-    //         for (int j = 0; j < superBlock.inode_region_len; j++)
-    //         {
-    //             if (inodes[j].type == 0)
-    //                 next_idx = j;
-    //         }
-
-    //         // no inodes available:
-    //         if (next_idx == -1)
-    //             return -1;
-
-    //         // make new inode for file:
-    //         inode_t *new_inode = &inodes[next_idx];
-    //         new_inode->type = type;
-    //         new_inode->size = 0;
-
-    //         // get next free datablock
-    //         int next_datablock_idx = -1;
-    //         for (int j = 0; j < superBlock.num_data; j++)
-    //         {
-    //             int is_used = get_bit((unsigned int *)(long)superBlock.data_bitmap_addr, j);
-    //             if (!is_used)
-    //             {
-    //                 next_datablock_idx = j;
-    //                 break;
-    //             }
-    //         }
-
-    //         if (next_datablock_idx == -1)
-    //         {
-    //             // no datablocks available:
-    //             return -1;
-    //         }
-
-    //         new_inode->direct[0] = next_datablock_idx;
-
-    //         // set block as used in bitmap:
-    //         set_bit((unsigned int *)(long)superBlock.data_bitmap_addr, next_datablock_idx);
-
-    //         // pwrite(fileD, meta_blocks, 3 * MFS_BLOCK_SIZE, MFS_BLOCK_SIZE);
-
-    //         // TODO: deal with making directories:
-
-    //         entry->inum = next_idx;
-    //         strncpy(entry->name, name, 60);
-
-    //         lseek(fileD, parent.direct[i], SEEK_SET);
-    //         write(fileD, pblock, MFS_BLOCK_SIZE);
-
-    //         return 0;
-    //     }
-
-        // grow if needed:
-    //     return -1;
-    // }
 
     return -1;
 }
@@ -314,6 +252,10 @@ int main(int argc, char *argv[])
         {
             res.rc = server_lookup(msg.pinum, msg.name);
         }
+
+        if (msg.func == CREAT) {
+            res.rc = server_creat(msg.pinum, msg.type, msg.name);
+        } 
 
         if (msg.func == STAT)
         {

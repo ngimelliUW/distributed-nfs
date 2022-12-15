@@ -85,6 +85,7 @@ int MFS_Lookup(int pinum, char *name)
  */
 int MFS_Stat(int inum, MFS_Stat_t *m)
 {
+    msg.func = STAT;
     msg.inum = inum;
     msg.m = m;
     send_req();
@@ -99,6 +100,7 @@ int MFS_Stat(int inum, MFS_Stat_t *m)
 int MFS_Write(int inum, char *buffer, int offset, int nbytes)
 {
     msg.inum = inum;
+    msg.func = WRITE;
     strncpy(msg.buffer, buffer, sizeof(buffer));
     msg.offset = offset;
     msg.nbytes = nbytes;
@@ -114,6 +116,7 @@ int MFS_Write(int inum, char *buffer, int offset, int nbytes)
 int MFS_Read(int inum, char *buffer, int offset, int nbytes)
 {
     msg.inum = inum;
+    msg.func = READ;
     strncpy(msg.buffer, buffer, sizeof(buffer));
     msg.offset = offset;
     msg.nbytes = nbytes;
@@ -129,11 +132,12 @@ int MFS_Read(int inum, char *buffer, int offset, int nbytes)
 */
 int MFS_Creat(int pinum, int type, char *name)
 {
+    msg.func = CREAT;
     msg.pinum = pinum;
     msg.type = type;
     strncpy(msg.name, name, sizeof(name));
     send_req();
-    return -1;
+    return sres.rc;
 }
 
 /**
@@ -145,6 +149,7 @@ int MFS_Creat(int pinum, int type, char *name)
 int MFS_Unlink(int pinum, char *name)
 {
     msg.pinum = pinum;
+    msg.func = UNLINK;
     strncpy(msg.name, name, sizeof(name));
     send_req();
     return -1;
