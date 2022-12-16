@@ -163,6 +163,9 @@ int server_stat(int inum, MFS_Stat_t *m)
 
 int server_write(int inum, char *buffer, int offset, int nbytes)
 {
+    if (nbytes < 0 || nbytes > MFS_BLOCK_SIZE)
+        return -1;
+
     // invalid inum:
     if (inum < 0 || inum > superBlock.num_inodes)
     {
@@ -179,13 +182,6 @@ int server_write(int inum, char *buffer, int offset, int nbytes)
 
     // invalid: directory
     if (file->type == MFS_DIRECTORY)
-        return -1;
-
-    if (nbytes < 0 || nbytes > 4096)
-        return -1;
-
-    // invalid nbytes:
-    if (nbytes > file->size - offset)
         return -1;
 
     int relative_offset = offset % MFS_BLOCK_SIZE;
