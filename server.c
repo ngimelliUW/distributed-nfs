@@ -302,7 +302,7 @@ int server_unlink(int pinum, char *name)
     //     return -1;
     // }
 
-    int entry_inum = -1;
+    dir_ent_t *entry;
     for (int i = 0; i < DIRECT_PTRS; i++)
     { //Looking for the entry
         if (parent->direct[i] == -1)
@@ -313,36 +313,34 @@ int server_unlink(int pinum, char *name)
             dir_ent_t *curr = data_blocks + MFS_BLOCK_SIZE * parent->direct[i] + j;
             if (strncmp(curr->name, name, 28) == 0)
             {
-                entry_inum = curr->inum;
+                entry = curr;
                 i = DIRECT_PTRS; //Exit outer loop
                 break;
             }
         }
     }
 
-    printf("reached here\n");
-
-    if (entry_inum == -1)
+    if (entry->inum == -1)
     {
         printf("file not found\n");
         return -1;
     }
 
-    inode_t *entry_inode = inodes[entry_inum];
+    inode_t *entry_inode = inodes[entry->inum];
 
     if (entry_inode->type == MFS_DIRECTORY)
     {
         //Recursively remove everything in the directory
         for (int i = 0; i < DIRECT_PTRS; i++)
         {
-            if (parent->direct[i] == -1)
+            if (entry_inode->direct[i] == -1)
             {
                 continue;
             }
 
             for (int j = 0; j < MFS_BLOCK_SIZE; j += sizeof(dir_ent_t))
             {
-                dir_ent_t *curr = data_blocks + MFS_BLOCK_SIZE * parent->direct[i] + j;
+                dir_ent_t *curr = data_blocks + MFS_BLOCK_SIZE * entry_inode->direct[i] + j;
                 if (strncmp(curr->name, ".", 28) == 0 || strncmp(curr->name, "..", 28) == 0)
                 {
                     continue;
@@ -359,6 +357,7 @@ int server_unlink(int pinum, char *name)
                     continue;
                 }
                 printf("curr->inum = %d\n", curr->inum);
+                printf("curr->name = %s\n", curr->name);
 
                 printf("returning -1 at end of for\n");
                 return -1;
@@ -369,13 +368,15 @@ int server_unlink(int pinum, char *name)
         }
     }
 
-    clear_bit(inode_bitmap, entry_inum);
+    clear_bit(inode_bitmap, entry->inum);
     for (int i = 0; i < DIRECT_PTRS; i++)
     {
         clear_bit(data_bitmap, entry_inode->direct[i]);
         entry_inode->direct[i] = -1;
     }
 
+    entry->inum = -1;
+    strncpy(entry->name, "", 28);
     entry_inode->type = 0;
     entry_inode->size = 0;
     return 0;

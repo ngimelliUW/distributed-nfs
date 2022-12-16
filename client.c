@@ -21,10 +21,16 @@ int main(int argc, char *argv[])
     MFS_Lookup(0, ".");
     MFS_Lookup(0, "..");
 
-    printf("%d\n", MFS_Creat(0, MFS_DIRECTORY, "osu"));
-    printf("%d\n", MFS_Lookup(0, "osu"));
+    printf("%d\n", MFS_Creat(0, MFS_DIRECTORY, "a"));
+    printf("%d\n", MFS_Creat(1, MFS_DIRECTORY, "b"));
 
-    MFS_Creat(1, MFS_DIRECTORY, "osu_subdirectory");
+    printf("unlinking a/b: %d\n", MFS_Unlink(1, "b"));
+    printf("unlinking a: %d\n", MFS_Unlink(0, "a"));
+    //printf("%d\n", MFS_Lookup(0, "osu"));
+
+    //MFS_Creat(1, MFS_DIRECTORY, "osu_subdirectory");
+    // printf("unlinking test_directory_empty: %d\n", MFS_Unlink(1, "osu_subdirectory"));
+    // printf("unlinking non_empty_directory: %d\n", MFS_Unlink(0, "osu"));
 
     MFS_Shutdown();
 
