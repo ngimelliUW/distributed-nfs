@@ -22,10 +22,12 @@ int main(int argc, char *argv[])
     MFS_Lookup(0, "..");
 
     printf("%d\n", MFS_Creat(0, MFS_DIRECTORY, "a"));
-    printf("%d\n", MFS_Creat(1, MFS_DIRECTORY, "b"));
+    printf("%d\n", MFS_Creat(1, MFS_REGULAR_FILE, "b"));
 
-    printf("unlinking a/b: %d\n", MFS_Unlink(1, "b"));
-    printf("unlinking a: %d\n", MFS_Unlink(0, "a"));
+    // printf("unlinking a/b: %d\n", MFS_Unlink(1, "b"));
+    // printf("unlinking a: %d\n", MFS_Unlink(0, "a"));
+
+    printf("testing too many nbytes: %d\n", MFS_Write(2, "hi", 0, 30 * MFS_BLOCK_SIZE + 1));
     //printf("%d\n", MFS_Lookup(0, "osu"));
 
     //MFS_Creat(1, MFS_DIRECTORY, "osu_subdirectory");

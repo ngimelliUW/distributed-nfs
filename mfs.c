@@ -29,18 +29,18 @@ void send_req()
         if (sres.rc)
         {
             // handle req failure
-            printf("req failed\n");
+            //printf("req failed\n");
         }
         else
         {
             // handle req success
-            printf("req successful\n");
+            //printf("req successful\n");
         }
     }
     else
     {
         // timeout occured:
-        printf("timed out. trying req again\n");
+        //printf("timed out. trying req again\n");
         send_req();
     }
 }
@@ -105,7 +105,7 @@ int MFS_Write(int inum, char *buffer, int offset, int nbytes)
     msg.offset = offset;
     msg.nbytes = nbytes;
     send_req();
-    return -1;
+    return sres.rc;
 }
 
 /**
@@ -137,7 +137,7 @@ int MFS_Creat(int pinum, int type, char *name)
     msg.func = CREAT;
     msg.pinum = pinum;
     msg.type = type;
-    strncpy(msg.name, name, sizeof(name));
+    strncpy(msg.name, name, 28);
     send_req();
     return sres.rc;
 }
@@ -154,7 +154,7 @@ int MFS_Unlink(int pinum, char *name)
         return -1;
     msg.pinum = pinum;
     msg.func = UNLINK;
-    strncpy(msg.name, name, sizeof(name));
+    strncpy(msg.name, name, 28);
     send_req();
     return sres.rc;
 }

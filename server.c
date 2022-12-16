@@ -161,6 +161,43 @@ int server_stat(int inum, MFS_Stat_t *m)
     return 0;
 }
 
+int server_write(int inum, char *buffer, int offset, int nbytes)
+{
+    // invalid inum:
+    if (inum < 0 || inum > superBlock.num_inodes)
+    {
+        printf("Parent inum is out of range");
+        return -1;
+    }
+    if (!get_bit(inode_bitmap, inum))
+    {
+        printf("Parent inum is unallocated");
+        return -1;
+    }
+
+    inode_t *file = inodes[inum];
+
+    // invalid: directory
+    if (file->type == MFS_DIRECTORY)
+        return -1;
+
+    if (nbytes < 0 || nbytes > 4096)
+        return -1;
+
+    // invalid nbytes:
+    if (nbytes > file->size - offset)
+        return -1;
+
+    int relative_offset = offset % MFS_BLOCK_SIZE;
+    int direct_index = offset / MFS_BLOCK_SIZE;
+
+    int data_block_num = file->direct[direct_index];
+
+    memcpy(data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, buffer, nbytes);
+
+    return 0;
+}
+
 int server_creat(int pinum, int type, char *name)
 {
     if (pinum < 0 || pinum > superBlock.num_inodes)
@@ -441,6 +478,11 @@ int main(int argc, char *argv[])
         if (msg.func == LOOKUP)
         {
             res.rc = server_lookup(msg.pinum, msg.name);
+        }
+
+        if (msg.func == WRITE)
+        {
+            res.rc = server_write(msg.inum, msg.buffer, msg.offset, msg.nbytes);
         }
 
         if (msg.func == CREAT)
