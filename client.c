@@ -21,7 +21,11 @@ int main(int argc, char *argv[])
     MFS_Lookup(0, ".");
     MFS_Lookup(0, "..");
 
-    MFS_Creat(0, MFS_REGULAR_FILE, "osu");
+    printf("%d\n", MFS_Creat(0, MFS_DIRECTORY, "osu"));
+    printf("%d\n", MFS_Lookup(0, "osu"));
+
+    MFS_Creat(1, MFS_DIRECTORY, "osu_subdirectory");
+
     MFS_Shutdown();
 
     // printf("client:: send message [%s]\n", message);

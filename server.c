@@ -69,10 +69,14 @@ int server_init()
     memset(data_bitmap, 0, MFS_BLOCK_SIZE * superBlock.data_bitmap_len);
 
     // Set up root directory
-    inodes[0] = malloc(sizeof(inode_t));
     inodes[0]->size = 2 * sizeof(dir_ent_t); //Two dot entries
     inodes[0]->type = MFS_DIRECTORY;
     inodes[0]->direct[0] = 0;
+
+    for (int i = 1; i < DIRECT_PTRS; i++)
+    {
+        inodes[0]->direct[i] = -1;
+    }
 
     // Update bitmaps
     set_bit(inode_bitmap, 0);
@@ -129,13 +133,12 @@ int server_lookup(int pinum, char *name)
 
             if (!strncmp(curr_dir_ent->name, name, 28))
             {
-                printf("found file with name: %s\n", curr_dir_ent->name);
-                res.rc = 0;
+                //printf("found file with name: %s\n", curr_dir_ent->name);
                 return curr_dir_ent->inum;
             }
         }
     }
-    printf("could not find file %s\n", name);
+    //printf("could not find file %s\n", name);
     return -1;
 }
 
@@ -281,8 +284,7 @@ int server_creat(int pinum, int type, char *name)
 
 int server_unlink(int pinum, char *name)
 {
-    printf("%s\n", name);
-    //printf("%d\n", pinum);
+    printf("inum: %d *** name: %s\n", pinum, name);
     if (pinum < 0 || pinum > superBlock.num_inodes)
     {
         printf("Parent inum is out of range");
@@ -295,10 +297,17 @@ int server_unlink(int pinum, char *name)
         return -1;
     }
     inode_t *parent = inodes[pinum];
+    // if (parent->type == MFS_DIRECTORY && parent->size > 2 * sizeof(dir_ent_t))
+    // {
+    //     return -1;
+    // }
 
     int entry_inum = -1;
     for (int i = 0; i < DIRECT_PTRS; i++)
     { //Looking for the entry
+        if (parent->direct[i] == -1)
+            continue;
+
         for (int j = 0; j < MFS_BLOCK_SIZE; j += sizeof(dir_ent_t))
         {
             dir_ent_t *curr = data_blocks + MFS_BLOCK_SIZE * parent->direct[i] + j;
@@ -311,20 +320,18 @@ int server_unlink(int pinum, char *name)
         }
     }
 
+    printf("reached here\n");
+
     if (entry_inum == -1)
     {
         printf("file not found\n");
-        return 0;
+        return -1;
     }
 
     inode_t *entry_inode = inodes[entry_inum];
 
     if (entry_inode->type == MFS_DIRECTORY)
     {
-        for (int i = 0; i < DIRECT_PTRS; i++)
-        {
-            printf("%d\n", parent->direct[i]);
-        }
         //Recursively remove everything in the directory
         for (int i = 0; i < DIRECT_PTRS; i++)
         {
@@ -336,10 +343,28 @@ int server_unlink(int pinum, char *name)
             for (int j = 0; j < MFS_BLOCK_SIZE; j += sizeof(dir_ent_t))
             {
                 dir_ent_t *curr = data_blocks + MFS_BLOCK_SIZE * parent->direct[i] + j;
-                if (curr->inum == -1 || strncmp(curr->name, ".", 28) == 0 || strncmp(curr->name, "..", 28) == 0)
+                if (strncmp(curr->name, ".", 28) == 0 || strncmp(curr->name, "..", 28) == 0)
+                {
                     continue;
+                }
 
-                server_unlink(entry_inum, curr->name);
+                // if (strlen(curr->name) > 0)
+                // {
+                //     printf("str len not > 0, returning -1\n");
+                //     return -1;
+                // }
+
+                if (curr->inum == -1)
+                {
+                    continue;
+                }
+                printf("curr->inum = %d\n", curr->inum);
+
+                printf("returning -1 at end of for\n");
+                return -1;
+
+                //printf("parent->direct[%d] = %d\n", i, parent->direct[i]);
+                //server_unlink(entry_inum, curr->name);
             }
         }
     }
@@ -352,7 +377,7 @@ int server_unlink(int pinum, char *name)
     }
 
     entry_inode->type = 0;
-    entry_inode->type = 0;
+    entry_inode->size = 0;
     return 0;
 }
 
