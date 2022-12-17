@@ -101,7 +101,7 @@ int MFS_Write(int inum, char *buffer, int offset, int nbytes)
 {
     msg.inum = inum;
     msg.func = WRITE;
-    strncpy(msg.buffer, buffer, sizeof(buffer));
+    strncpy(msg.buffer, buffer, 4096);
     msg.offset = offset;
     msg.nbytes = nbytes;
     send_req();
@@ -117,11 +117,11 @@ int MFS_Read(int inum, char *buffer, int offset, int nbytes)
 {
     msg.inum = inum;
     msg.func = READ;
-    strncpy(msg.buffer, buffer, sizeof(buffer));
+    strncpy(msg.buffer, buffer, 4096);
     msg.offset = offset;
     msg.nbytes = nbytes;
     send_req();
-    return -1;
+    return sres.rc;
 }
 
 /**

@@ -228,17 +228,18 @@ int server_write(int inum, char *buffer, int offset, int nbytes)
         }
     }
 
+    int last_byte = direct_index * MFS_BLOCK_SIZE + relative_offset + nbytes;
+    if (last_byte > file->size) file->size = last_byte;
+
     if(nbytes + relative_offset <= MFS_BLOCK_SIZE){
-        memcpy(data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, buffer, nbytes);
+        strncpy(data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, buffer, nbytes);
+        // memcpy(data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, buffer, nbytes);
         return 0;
     }
     else{
-        memcpy(data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, buffer, MFS_BLOCK_SIZE - relative_offset);
+        strncpy(data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, buffer, MFS_BLOCK_SIZE - relative_offset);
+        // memcpy(data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, buffer, MFS_BLOCK_SIZE - relative_offset);
     }
-    
-
-    int last_byte = direct_index * MFS_BLOCK_SIZE + relative_offset + nbytes;
-    if (last_byte > file->size) file->size = last_byte;
 
     int data_block_num2 = file->direct[direct_index + 1];
 
@@ -259,7 +260,7 @@ int server_write(int inum, char *buffer, int offset, int nbytes)
             }
         }
     }
-    memcpy(data_blocks + (data_block_num2 * MFS_BLOCK_SIZE), buffer, nbytes - (MFS_BLOCK_SIZE - relative_offset));
+    strncpy(data_blocks + (data_block_num2 * MFS_BLOCK_SIZE), buffer, nbytes - (MFS_BLOCK_SIZE - relative_offset));
 
     return 0;
 }
@@ -300,18 +301,26 @@ int server_read(int inum, char *buffer, int offset, int nbytes){
 
     int relative_offset = offset % MFS_BLOCK_SIZE;
 
-    int space_left = MFS_BLOCK_SIZE - relative_offset;
     int direct_index = offset / MFS_BLOCK_SIZE;
 
     int data_block_num = file->direct[direct_index];
 
-    memcpy(buffer, data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, space_left);
-
-    if (space_left > nbytes) return 0; //Fit all in the first block
+    if(nbytes + relative_offset <= MFS_BLOCK_SIZE){
+        strncpy(buffer, data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, nbytes);
+        // char * temp = data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset;
+        // printf("Read %s at address in write\n", temp);
+        // printf("Read %s to buffer in write\n", buffer);
+        // memcpy(buffer, data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, nbytes);
+        return 0;
+    }
+    else{
+        strncpy(buffer, data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, MFS_BLOCK_SIZE - relative_offset);
+        // memcpy(buffer, data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, MFS_BLOCK_SIZE - relative_offset);
+    }
 
     int data_block_num2 = file->direct[direct_index + 1];
 
-    memcpy(buffer + space_left, data_blocks + (data_block_num2 * MFS_BLOCK_SIZE), nbytes - space_left);
+    strncpy(buffer + MFS_BLOCK_SIZE - relative_offset, data_blocks + (data_block_num2 * MFS_BLOCK_SIZE), nbytes - (MFS_BLOCK_SIZE - relative_offset));
 
     return 0;
 
@@ -612,6 +621,7 @@ int main(int argc, char *argv[])
         if (msg.func == READ)
         {
             res.rc = server_read(msg.inum, msg.buffer, msg.offset, msg.nbytes);
+            // printf("Read %s at msg.buffer in write\n", msg.buffer);
         }
 
         if (msg.func == CREAT)
