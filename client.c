@@ -18,14 +18,16 @@ int main(int argc, char *argv[])
 
     sd = MFS_Init("localhost", 72727);
 
-    MFS_Lookup(0, ".");
-    MFS_Lookup(0, "..");
+    // MFS_Lookup(0, ".");
+    // MFS_Lookup(0, "..");
 
     printf("%d\n", MFS_Creat(0, MFS_DIRECTORY, "a"));
     printf("%d\n", MFS_Creat(1, MFS_DIRECTORY, "b"));
     printf("%d\n", MFS_Creat(2, MFS_DIRECTORY, "c"));
     printf("%d\n", MFS_Creat(3, MFS_DIRECTORY, "d"));
 
+    printf("%d\n", MFS_Lookup(2, "c"));
+    //printf("%d\n", MFS_Lookup(3, "d"));
 
     MFS_Shutdown();
     return 0;

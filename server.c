@@ -124,12 +124,13 @@ int server_lookup(int pinum, char *name)
     for (int i = 0; i < DIRECT_PTRS; i++)
     {
         //printf("looking at parent->direct[%d] = %d\n", i, parent->direct[i]);
-        if (parent->direct[i] == ~0)
+        if (parent->direct[i] == -1)
             continue;
 
         for (int j = 0; j < parent->size; j += sizeof(dir_ent_t))
         {
             dir_ent_t *curr_dir_ent = data_blocks + MFS_BLOCK_SIZE * parent->direct[i] + j;
+            printf("%s\n", curr_dir_ent->name);
 
             if (!strncmp(curr_dir_ent->name, name, 28))
             {
@@ -254,6 +255,7 @@ int server_creat(int pinum, int type, char *name)
                         strncpy(unused_dir->name, "", 28);
                     }
                     parent->direct[i] = j;
+                    printf("j: %d\n", j);
                     i = DIRECT_PTRS;
                     break;
                 }
@@ -311,6 +313,8 @@ int server_creat(int pinum, int type, char *name)
                     temp->inum = -1;
                     strncpy(temp->name, "", 28);
                 }
+
+                break;
             }
         }
     }
