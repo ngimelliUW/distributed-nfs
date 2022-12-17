@@ -206,13 +206,12 @@ int server_write(int inum, char *buffer, int offset, int nbytes)
 
     int relative_offset = offset % MFS_BLOCK_SIZE;
 
-    int space_left = MFS_BLOCK_SIZE - relative_offset;
     int direct_index = offset / MFS_BLOCK_SIZE;
 
     int data_block_num = file->direct[direct_index];
 
-   if (data_block_num == -1){
-         //Init a data block
+    if (data_block_num == -1){
+            //Init a data block
         for (int i = 0; i < superBlock.num_data; i++)
         {
             if (get_bit(data_bitmap, i) != 0)
@@ -228,9 +227,18 @@ int server_write(int inum, char *buffer, int offset, int nbytes)
             }
         }
     }
-    memcpy(data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, buffer, space_left);
 
-    if (space_left > nbytes) return 0; //Fit all in the first block
+    if(nbytes + relative_offset <= MFS_BLOCK_SIZE){
+        memcpy(data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, buffer, nbytes);
+        return 0;
+    }
+    else{
+        memcpy(data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, buffer, MFS_BLOCK_SIZE - relative_offset);
+    }
+    
+
+    int last_byte = direct_index * MFS_BLOCK_SIZE + relative_offset + nbytes;
+    if (last_byte > file->size) file->size = last_byte;
 
     int data_block_num2 = file->direct[direct_index + 1];
 
@@ -251,11 +259,63 @@ int server_write(int inum, char *buffer, int offset, int nbytes)
             }
         }
     }
-    memcpy(data_blocks + (data_block_num2 * MFS_BLOCK_SIZE) + relative_offset, buffer, nbytes-space_left);
+    memcpy(data_blocks + (data_block_num2 * MFS_BLOCK_SIZE), buffer, nbytes - (MFS_BLOCK_SIZE - relative_offset));
 
     return 0;
 }
 
+int server_read(int inum, char *buffer, int offset, int nbytes){
+     //invalid nbytes
+    if (nbytes < 0 || nbytes > MFS_BLOCK_SIZE){
+        printf("Invalid offset\n");
+        return -1;
+    }
+
+    // invalid inum:
+    if (inum < 0 || inum > superBlock.num_inodes)
+    {
+        printf("Parent inum is out of range\n");
+        return -1;
+    }
+
+    // unallocated nbytes
+    if (!get_bit(inode_bitmap, inum))
+    {
+        printf("Parent inum is unallocated\n");
+        return -1;
+    }
+
+    inode_t *file = inodes[inum];
+
+    // invalid offset
+    if (offset < 0 || file->size < offset){
+        printf("Invalid offset\n");
+        return -1;
+    }
+
+    if (offset + nbytes > file->size){
+        printf("Invalid offset\n");
+        return -1;
+    }
+
+    int relative_offset = offset % MFS_BLOCK_SIZE;
+
+    int space_left = MFS_BLOCK_SIZE - relative_offset;
+    int direct_index = offset / MFS_BLOCK_SIZE;
+
+    int data_block_num = file->direct[direct_index];
+
+    memcpy(buffer, data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, space_left);
+
+    if (space_left > nbytes) return 0; //Fit all in the first block
+
+    int data_block_num2 = file->direct[direct_index + 1];
+
+    memcpy(buffer + space_left, data_blocks + (data_block_num2 * MFS_BLOCK_SIZE), nbytes - space_left);
+
+    return 0;
+
+}
 int server_creat(int pinum, int type, char *name)
 {
     if (pinum < 0 || pinum > superBlock.num_inodes)
@@ -547,6 +607,11 @@ int main(int argc, char *argv[])
         if (msg.func == WRITE)
         {
             res.rc = server_write(msg.inum, msg.buffer, msg.offset, msg.nbytes);
+        }
+
+        if (msg.func == READ)
+        {
+            res.rc = server_read(msg.inum, msg.buffer, msg.offset, msg.nbytes);
         }
 
         if (msg.func == CREAT)

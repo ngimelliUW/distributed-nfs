@@ -23,8 +23,13 @@ int main(int argc, char *argv[])
 
     printf("%d\n", MFS_Creat(0, MFS_REGULAR_FILE, "a"));
 
-    printf("%d\n", MFS_Write(1, "osu", 500, 4096));
+    printf("%d\n", MFS_Write(1, "osu", 0, 28));
+    char * buf = malloc(28);
+    printf("%d\n", MFS_Read(1, buf, 0, 28));
+    printf("string at buf is %s", buf);
+    free(buf);
     //printf("%d\n", MFS_Lookup(3, "d"));
+
 
     MFS_Shutdown();
     return 0;
