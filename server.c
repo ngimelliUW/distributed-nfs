@@ -215,8 +215,8 @@ int server_creat(int pinum, int type, char *name)
         return -1;
     }
 
-    void *free_space;
-    printf("got to for loop\n");
+    dir_ent_t *new_entry;
+    // printf("got to for loop\n");
     for (int i = 0; i < DIRECT_PTRS; i++)
     {
         if (parent->direct[i] != -1)
@@ -226,7 +226,7 @@ int server_creat(int pinum, int type, char *name)
                 dir_ent_t *temp = data_blocks + MFS_BLOCK_SIZE * parent->direct[i] + j;
                 if (temp->inum == -1)
                 {
-                    free_space = temp;
+                    new_entry = temp;
                     i = DIRECT_PTRS; // exit out of outer-for loop
                     break;
                 }
@@ -244,12 +244,12 @@ int server_creat(int pinum, int type, char *name)
                 else
                 {
                     set_bit(data_bitmap, j);
-                    free_space = data_blocks + MFS_BLOCK_SIZE * j;
+                    new_entry = data_blocks + MFS_BLOCK_SIZE * j;
 
                     // iterate through data block and init blank entries:
                     for (int k = 0; k < MFS_BLOCK_SIZE / sizeof(dir_ent_t); k++)
                     {
-                        dir_ent_t *unused_dir = (free_space + k * sizeof(dir_ent_t));
+                        dir_ent_t *unused_dir = (new_entry + k * sizeof(dir_ent_t));
                         unused_dir->inum = -1;
                         strncpy(unused_dir->name, "", 28);
                     }
@@ -261,13 +261,12 @@ int server_creat(int pinum, int type, char *name)
         }
     }
 
-    printf("got past for loop\n");
+    // printf("got past for loop\n");
 
-    dir_ent_t *new_entry = free_space;
     strncpy(new_entry->name, name, 28);
 
     // find next free inode
-    printf("got to next free inode section\n");
+    // printf("got to next free inode section\n");
     int next_free_inode = -1;
     for (int i = 0; i < superBlock.num_inodes; i++)
     {
@@ -282,7 +281,7 @@ int server_creat(int pinum, int type, char *name)
     new_entry->inum = next_free_inode;
     inodes[next_free_inode]->type = type;
     // handle file if its a directory:
-    printf("got to directory section\n");
+    // printf("got to directory section\n");
     if (type == MFS_DIRECTORY)
     {
         // find next free datablock:
