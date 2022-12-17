@@ -130,7 +130,7 @@ int server_lookup(int pinum, char *name)
         for (int j = 0; j < parent->size; j += sizeof(dir_ent_t))
         {
             dir_ent_t *curr_dir_ent = data_blocks + MFS_BLOCK_SIZE * parent->direct[i] + j;
-            printf("%s\n", curr_dir_ent->name);
+            // printf("%s\n", curr_dir_ent->name);
 
             if (!strncmp(curr_dir_ent->name, name, 28))
             {
@@ -155,7 +155,6 @@ int server_stat(int inum, MFS_Stat_t *m)
         printf("There's no allocated file at this inode");
         return -1;
     }
-    res.rc = 0;
     inode_t *curr_inode = inodes[inum];
     m->type = curr_inode->type;
     m->size = curr_inode->size;
@@ -299,27 +298,27 @@ int server_read(int inum, char *buffer, int offset, int nbytes)
 
     inode_t *file = inodes[inum];
 
-    // if reading directory
-    if (file->type == MFS_DIRECTORY)
-    {
-        dir_ent_t *temp = (dir_ent_t *)buffer;
-        for (int i = 0; i < DIRECT_PTRS; i++)
-        {
-            if (file->direct[i] == -1)
-                continue;
+    // // if reading directory
+    // if (file->type == MFS_DIRECTORY)
+    // {
+    //     dir_ent_t *temp = (dir_ent_t *)buffer;
+    //     for (int i = 0; i < DIRECT_PTRS; i++)
+    //     {
+    //         if (file->direct[i] == -1)
+    //             continue;
 
-            dir_ent_t *curr;
-            for (int j = 0; j < MFS_BLOCK_SIZE; j += sizeof(dir_ent_t))
-            {
-                curr = data_blocks + MFS_BLOCK_SIZE * file->direct[i] + j;
-                if (curr->inum == -1)
-                    continue;
-                memcpy(temp, curr, sizeof(dir_ent_t));
-                temp += sizeof(dir_ent_t);
-            }
-        }
-        return 0;
-    }
+    //         dir_ent_t *curr;
+    //         for (int j = 0; j < MFS_BLOCK_SIZE; j += sizeof(dir_ent_t))
+    //         {
+    //             curr = data_blocks + MFS_BLOCK_SIZE * file->direct[i] + j;
+    //             if (curr->inum == -1)
+    //                 continue;
+    //             memcpy(temp, curr, sizeof(dir_ent_t));
+    //             temp += sizeof(dir_ent_t);
+    //         }
+    //     }
+    //     return 0;
+    // }
 
     // invalid offset
     if (offset < 0 || file->size < offset)
@@ -342,22 +341,24 @@ int server_read(int inum, char *buffer, int offset, int nbytes)
 
     if (nbytes + relative_offset <= MFS_BLOCK_SIZE)
     {
-        strncpy(buffer, data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, nbytes);
+        memcpy(buffer, data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, nbytes);
         // char * temp = data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset;
         // printf("Read %s at address in write\n", temp);
         // printf("Read %s to buffer in write\n", buffer);
         // memcpy(buffer, data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, nbytes);
+        printf("RETURNING 0\n");
         return 0;
     }
     else
     {
-        strncpy(buffer, data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, MFS_BLOCK_SIZE - relative_offset);
+        printf("NOT RETURNING\n");
+        memcpy(buffer, data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, MFS_BLOCK_SIZE - relative_offset);
         // memcpy(buffer, data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, MFS_BLOCK_SIZE - relative_offset);
     }
 
     int data_block_num2 = file->direct[direct_index + 1];
 
-    strncpy(buffer + MFS_BLOCK_SIZE - relative_offset, data_blocks + (data_block_num2 * MFS_BLOCK_SIZE), nbytes - (MFS_BLOCK_SIZE - relative_offset));
+    memcpy(buffer + MFS_BLOCK_SIZE - relative_offset, data_blocks + (data_block_num2 * MFS_BLOCK_SIZE), nbytes - (MFS_BLOCK_SIZE - relative_offset));
 
     return 0;
 }
@@ -490,7 +491,6 @@ int server_creat(int pinum, int type, char *name)
 
 int server_unlink(int pinum, char *name)
 {
-    printf("inum: %d *** name: %s\n", pinum, name);
     if (pinum < 0 || pinum > superBlock.num_inodes)
     {
         printf("Parent inum is out of range");
@@ -528,7 +528,7 @@ int server_unlink(int pinum, char *name)
 
     if (entry->inum == -1)
     {
-        printf("file not found\n");
+        printf("File not found\n");
         return -1;
     }
 
@@ -552,24 +552,11 @@ int server_unlink(int pinum, char *name)
                     continue;
                 }
 
-                // if (strlen(curr->name) > 0)
-                // {
-                //     printf("str len not > 0, returning -1\n");
-                //     return -1;
-                // }
-
                 if (curr->inum == -1)
                 {
                     continue;
                 }
-                printf("curr->inum = %d\n", curr->inum);
-                printf("curr->name = %s\n", curr->name);
-
-                printf("returning -1 at end of for\n");
                 return -1;
-
-                //printf("parent->direct[%d] = %d\n", i, parent->direct[i]);
-                //server_unlink(entry_inum, curr->name);
             }
         }
     }

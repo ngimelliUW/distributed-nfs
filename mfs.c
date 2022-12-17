@@ -121,9 +121,9 @@ int MFS_Read(int inum, char *buffer, int offset, int nbytes)
     msg.offset = offset;
     msg.nbytes = nbytes;
     send_req();
-    printf("sres.buf = %s\n", sres.buffer);
+    // printf("sres.buf = %s\n", sres.buffer);
     strncpy(buffer, sres.buffer, nbytes);
-    printf("Final result buffer: %s\n", buffer);
+    // printf("Final result buffer: %s\n", buffer);
     return sres.rc;
 }
 
