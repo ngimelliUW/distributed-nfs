@@ -162,35 +162,96 @@ int server_stat(int inum, MFS_Stat_t *m)
     return 0;
 }
 
+//Failure modes: invalid inum, invalid nbytes, invalid offset, not a regular file (because you can't write to directories).
 int server_write(int inum, char *buffer, int offset, int nbytes)
 {
-    if (nbytes < 0 || nbytes > MFS_BLOCK_SIZE)
+    //invalid nbytes
+    if (nbytes < 0 || nbytes > MFS_BLOCK_SIZE){
+        printf("Invalid offset\n");
         return -1;
+    }
 
     // invalid inum:
     if (inum < 0 || inum > superBlock.num_inodes)
     {
-        printf("Parent inum is out of range");
+        printf("Parent inum is out of range\n");
         return -1;
     }
+
+    // unallocated nbytes
     if (!get_bit(inode_bitmap, inum))
     {
-        printf("Parent inum is unallocated");
+        printf("Parent inum is unallocated\n");
         return -1;
     }
 
     inode_t *file = inodes[inum];
 
     // invalid: directory
-    if (file->type == MFS_DIRECTORY)
+    if (file->type == MFS_DIRECTORY){
+        printf("File type is directory\n");
         return -1;
+    }
+
+    // invalid offset
+    if (offset < 0 || file->size < offset){
+        printf("Invalid offset\n");
+        return -1;
+    }
+
+    if (offset + nbytes > 30 * MFS_BLOCK_SIZE){
+        printf("Invalid offset\n");
+        return -1;
+    }
 
     int relative_offset = offset % MFS_BLOCK_SIZE;
+
+    int space_left = MFS_BLOCK_SIZE - relative_offset;
     int direct_index = offset / MFS_BLOCK_SIZE;
 
     int data_block_num = file->direct[direct_index];
 
-    memcpy(data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, buffer, nbytes);
+   if (data_block_num == -1){
+         //Init a data block
+        for (int i = 0; i < superBlock.num_data; i++)
+        {
+            if (get_bit(data_bitmap, i) != 0)
+            {
+                continue;
+            }
+            else
+            {
+                set_bit(data_bitmap, i);
+                file->direct[direct_index] = i;
+                data_block_num = i;
+                break;
+            }
+        }
+    }
+    memcpy(data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, buffer, space_left);
+
+    if (space_left > nbytes) return 0; //Fit all in the first block
+
+    int data_block_num2 = file->direct[direct_index + 1];
+
+    if (data_block_num2 == -1){
+         //Init a data block
+        for (int i = 0; i < superBlock.num_data; i++)
+        {
+            if (get_bit(data_bitmap, i) != 0)
+            {
+                continue;
+            }
+            else
+            {
+                set_bit(data_bitmap, i);
+                file->direct[direct_index + 1] = i;
+                data_block_num2 = i;
+                break;
+            }
+        }
+    }
+    memcpy(data_blocks + (data_block_num2 * MFS_BLOCK_SIZE) + relative_offset, buffer, nbytes-space_left);
 
     return 0;
 }
@@ -255,7 +316,6 @@ int server_creat(int pinum, int type, char *name)
                         strncpy(unused_dir->name, "", 28);
                     }
                     parent->direct[i] = j;
-                    printf("j: %d\n", j);
                     i = DIRECT_PTRS;
                     break;
                 }
