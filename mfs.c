@@ -117,10 +117,13 @@ int MFS_Read(int inum, char *buffer, int offset, int nbytes)
 {
     msg.inum = inum;
     msg.func = READ;
-    strncpy(msg.buffer, buffer, 4096);
+    //strncpy(msg.buffer, buffer, 4096);
     msg.offset = offset;
     msg.nbytes = nbytes;
     send_req();
+    printf("sres.buf = %s\n", sres.buffer);
+    strncpy(buffer, sres.buffer, nbytes);
+    printf("Final result buffer: %s\n", buffer);
     return sres.rc;
 }
 
