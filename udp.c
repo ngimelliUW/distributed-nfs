@@ -59,7 +59,7 @@ int UDP_Write(int fd, struct sockaddr_in *addr, char *buffer, int n)
 {
     int addr_len = sizeof(struct sockaddr_in);
     msg_t *temp = (msg_t *)buffer;
-    //printf("Sending %s as the buffer value for %d\n", temp->buffer, temp->func);
+    printf("Sending %s as the buffer value for %d\n", temp->buffer, temp->func);
     int rc = sendto(fd, buffer, n, 0, (struct sockaddr *)addr, addr_len);
     return rc;
 }
@@ -69,7 +69,7 @@ int UDP_Read(int fd, struct sockaddr_in *addr, char *buffer, int n)
     int len = sizeof(struct sockaddr_in);
     int rc = recvfrom(fd, buffer, n, 0, (struct sockaddr *)addr, (socklen_t *)&len);
     msg_t *temp = (msg_t *)buffer;
-    //printf("Received %s as the buffer value for %d\n", temp->buffer, temp->func);
+    printf("Received %s as the buffer value for %d\n", temp->buffer, temp->func);
     return rc;
 }
 
