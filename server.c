@@ -166,7 +166,8 @@ int server_stat(int inum, MFS_Stat_t *m)
 int server_write(int inum, char *buffer, int offset, int nbytes)
 {
     //invalid nbytes
-    if (nbytes < 0 || nbytes > MFS_BLOCK_SIZE){
+    if (nbytes < 0 || nbytes > MFS_BLOCK_SIZE)
+    {
         printf("Invalid offset\n");
         return -1;
     }
@@ -188,18 +189,21 @@ int server_write(int inum, char *buffer, int offset, int nbytes)
     inode_t *file = inodes[inum];
 
     // invalid: directory
-    if (file->type == MFS_DIRECTORY){
+    if (file->type == MFS_DIRECTORY)
+    {
         printf("File type is directory\n");
         return -1;
     }
 
     // invalid offset
-    if (offset < 0 || file->size < offset){
+    if (offset < 0 || file->size < offset)
+    {
         printf("Invalid offset\n");
         return -1;
     }
 
-    if (offset + nbytes > 30 * MFS_BLOCK_SIZE){
+    if (offset + nbytes > 30 * MFS_BLOCK_SIZE)
+    {
         printf("Invalid offset\n");
         return -1;
     }
@@ -210,8 +214,9 @@ int server_write(int inum, char *buffer, int offset, int nbytes)
 
     int data_block_num = file->direct[direct_index];
 
-    if (data_block_num == -1){
-            //Init a data block
+    if (data_block_num == -1)
+    {
+        //Init a data block
         for (int i = 0; i < superBlock.num_data; i++)
         {
             if (get_bit(data_bitmap, i) != 0)
@@ -229,22 +234,26 @@ int server_write(int inum, char *buffer, int offset, int nbytes)
     }
 
     int last_byte = direct_index * MFS_BLOCK_SIZE + relative_offset + nbytes;
-    if (last_byte > file->size) file->size = last_byte;
+    if (last_byte > file->size)
+        file->size = last_byte;
 
-    if(nbytes + relative_offset <= MFS_BLOCK_SIZE){
+    if (nbytes + relative_offset <= MFS_BLOCK_SIZE)
+    {
         strncpy(data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, buffer, nbytes);
         // memcpy(data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, buffer, nbytes);
         return 0;
     }
-    else{
+    else
+    {
         strncpy(data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, buffer, MFS_BLOCK_SIZE - relative_offset);
         // memcpy(data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, buffer, MFS_BLOCK_SIZE - relative_offset);
     }
 
     int data_block_num2 = file->direct[direct_index + 1];
 
-    if (data_block_num2 == -1){
-         //Init a data block
+    if (data_block_num2 == -1)
+    {
+        //Init a data block
         for (int i = 0; i < superBlock.num_data; i++)
         {
             if (get_bit(data_bitmap, i) != 0)
@@ -265,9 +274,11 @@ int server_write(int inum, char *buffer, int offset, int nbytes)
     return 0;
 }
 
-int server_read(int inum, char *buffer, int offset, int nbytes){
-     //invalid nbytes
-    if (nbytes < 0 || nbytes > MFS_BLOCK_SIZE){
+int server_read(int inum, char *buffer, int offset, int nbytes)
+{
+    //invalid nbytes
+    if (nbytes < 0 || nbytes > MFS_BLOCK_SIZE)
+    {
         printf("Invalid offset\n");
         return -1;
     }
@@ -288,13 +299,37 @@ int server_read(int inum, char *buffer, int offset, int nbytes){
 
     inode_t *file = inodes[inum];
 
+    // if reading directory
+    if (file->type == MFS_DIRECTORY)
+    {
+        dir_ent_t *temp = (dir_ent_t *)buffer;
+        for (int i = 0; i < DIRECT_PTRS; i++)
+        {
+            if (file->direct[i] == -1)
+                continue;
+
+            dir_ent_t *curr;
+            for (int j = 0; j < MFS_BLOCK_SIZE; j += sizeof(dir_ent_t))
+            {
+                curr = data_blocks + MFS_BLOCK_SIZE * file->direct[i] + j;
+                if (curr->inum == -1)
+                    continue;
+                memcpy(temp, curr, sizeof(dir_ent_t));
+                temp += sizeof(dir_ent_t);
+            }
+        }
+        return 0;
+    }
+
     // invalid offset
-    if (offset < 0 || file->size < offset){
+    if (offset < 0 || file->size < offset)
+    {
         printf("Invalid offset\n");
         return -1;
     }
 
-    if (offset + nbytes > file->size){
+    if (offset + nbytes > file->size)
+    {
         printf("Invalid offset\n");
         return -1;
     }
@@ -305,7 +340,8 @@ int server_read(int inum, char *buffer, int offset, int nbytes){
 
     int data_block_num = file->direct[direct_index];
 
-    if(nbytes + relative_offset <= MFS_BLOCK_SIZE){
+    if (nbytes + relative_offset <= MFS_BLOCK_SIZE)
+    {
         strncpy(buffer, data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, nbytes);
         // char * temp = data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset;
         // printf("Read %s at address in write\n", temp);
@@ -313,7 +349,8 @@ int server_read(int inum, char *buffer, int offset, int nbytes){
         // memcpy(buffer, data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, nbytes);
         return 0;
     }
-    else{
+    else
+    {
         strncpy(buffer, data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, MFS_BLOCK_SIZE - relative_offset);
         // memcpy(buffer, data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, MFS_BLOCK_SIZE - relative_offset);
     }
@@ -323,7 +360,6 @@ int server_read(int inum, char *buffer, int offset, int nbytes){
     strncpy(buffer + MFS_BLOCK_SIZE - relative_offset, data_blocks + (data_block_num2 * MFS_BLOCK_SIZE), nbytes - (MFS_BLOCK_SIZE - relative_offset));
 
     return 0;
-
 }
 int server_creat(int pinum, int type, char *name)
 {
@@ -620,7 +656,7 @@ int main(int argc, char *argv[])
 
         if (msg.func == READ)
         {
-            res.rc = server_read(msg.inum, msg.buffer, msg.offset, msg.nbytes);
+            res.rc = server_read(msg.inum, res.buffer, msg.offset, msg.nbytes);
             // printf("Read %s at msg.buffer in write\n", msg.buffer);
         }
 
