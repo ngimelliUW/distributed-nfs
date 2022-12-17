@@ -238,14 +238,14 @@ int server_write(int inum, char *buffer, int offset, int nbytes)
 
     if (nbytes + relative_offset <= MFS_BLOCK_SIZE)
     {
-        strncpy(data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, buffer, nbytes);
-        // memcpy(data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, buffer, nbytes);
+        // strncpy(data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, buffer, nbytes);
+        memcpy(data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, buffer, nbytes);
         return 0;
     }
     else
     {
-        strncpy(data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, buffer, MFS_BLOCK_SIZE - relative_offset);
-        // memcpy(data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, buffer, MFS_BLOCK_SIZE - relative_offset);
+        // strncpy(data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, buffer, MFS_BLOCK_SIZE - relative_offset);
+        memcpy(data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, buffer, MFS_BLOCK_SIZE - relative_offset);
     }
 
     int data_block_num2 = file->direct[direct_index + 1];
@@ -268,8 +268,8 @@ int server_write(int inum, char *buffer, int offset, int nbytes)
             }
         }
     }
-    strncpy(data_blocks + (data_block_num2 * MFS_BLOCK_SIZE), buffer, nbytes - (MFS_BLOCK_SIZE - relative_offset));
-
+    // strncpy(data_blocks + (data_block_num2 * MFS_BLOCK_SIZE), buffer, nbytes - (MFS_BLOCK_SIZE - relative_offset));
+    memcpy(data_blocks + (data_block_num2 * MFS_BLOCK_SIZE), buffer + MFS_BLOCK_SIZE - relative_offset, nbytes - (MFS_BLOCK_SIZE - relative_offset));
     return 0;
 }
 
@@ -353,7 +353,6 @@ int server_read(int inum, char *buffer, int offset, int nbytes)
     {
         printf("NOT RETURNING\n");
         memcpy(buffer, data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, MFS_BLOCK_SIZE - relative_offset);
-        // memcpy(buffer, data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, MFS_BLOCK_SIZE - relative_offset);
     }
 
     int data_block_num2 = file->direct[direct_index + 1];
