@@ -216,6 +216,7 @@ int server_creat(int pinum, int type, char *name)
     }
 
     void *free_space;
+    printf("got to for loop\n");
     for (int i = 0; i < DIRECT_PTRS; i++)
     {
         if (parent->direct[i] != -1)
@@ -260,10 +261,13 @@ int server_creat(int pinum, int type, char *name)
         }
     }
 
+    printf("got past for loop\n");
+
     dir_ent_t *new_entry = free_space;
     strncpy(new_entry->name, name, 28);
 
     // find next free inode
+    printf("got to next free inode section\n");
     int next_free_inode = -1;
     for (int i = 0; i < superBlock.num_inodes; i++)
     {
@@ -278,6 +282,7 @@ int server_creat(int pinum, int type, char *name)
     new_entry->inum = next_free_inode;
     inodes[next_free_inode]->type = type;
     // handle file if its a directory:
+    printf("got to directory section\n");
     if (type == MFS_DIRECTORY)
     {
         // find next free datablock:
