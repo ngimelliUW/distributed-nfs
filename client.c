@@ -36,6 +36,9 @@ int main(int argc, char *argv[])
     // printf("%d\n", MFS_Read(1, buf, 27, 28));
     // printf("string at buf is %s\n", buf);
     free(buf);
+
+    MFS_Stat_t *st = malloc(sizeof(MFS_Stat_t));
+    printf("%d\n", MFS_Stat(inum, st));
     //printf("%d\n", MFS_Lookup(3, "d"));
 
     MFS_Shutdown();

@@ -89,6 +89,8 @@ int MFS_Stat(int inum, MFS_Stat_t *m)
     msg.inum = inum;
     msg.m = m;
     send_req();
+    m->size = sres.mfs_stat.size;
+    m->type = sres.mfs_stat.type;
     return sres.rc;
 }
 

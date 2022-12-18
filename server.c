@@ -156,8 +156,9 @@ int server_stat(int inum, MFS_Stat_t *m)
         return -1;
     }
     inode_t *curr_inode = inodes[inum];
-    m->type = curr_inode->type;
-    m->size = curr_inode->size;
+    printf("curr_inode type: %d, curr_inode size: %d", curr_inode->type, curr_inode->size);
+    res.mfs_stat.size = curr_inode->size;
+    res.mfs_stat.type = curr_inode->type;
     return 0;
 }
 
@@ -346,12 +347,12 @@ int server_read(int inum, char *buffer, int offset, int nbytes)
         // printf("Read %s at address in write\n", temp);
         // printf("Read %s to buffer in write\n", buffer);
         // memcpy(buffer, data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, nbytes);
-        printf("RETURNING 0\n");
+        //printf("RETURNING 0\n");
         return 0;
     }
     else
     {
-        printf("NOT RETURNING\n");
+        //printf("NOT RETURNING\n");
         memcpy(buffer, data_blocks + (data_block_num * MFS_BLOCK_SIZE) + relative_offset, MFS_BLOCK_SIZE - relative_offset);
     }
 
