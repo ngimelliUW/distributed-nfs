@@ -271,6 +271,7 @@ int server_write(int inum, char *buffer, int offset, int nbytes)
     }
     // strncpy(data_blocks + (data_block_num2 * MFS_BLOCK_SIZE), buffer, nbytes - (MFS_BLOCK_SIZE - relative_offset));
     memcpy(data_blocks + (data_block_num2 * MFS_BLOCK_SIZE), buffer + MFS_BLOCK_SIZE - relative_offset, nbytes - (MFS_BLOCK_SIZE - relative_offset));
+
     return 0;
 }
 
@@ -661,6 +662,10 @@ int main(int argc, char *argv[])
         {
             res.rc = server_unlink(msg.pinum, msg.name);
         }
+
+        // void *bff = inode_bitmap - (superBlock.inode_bitmap_addr * MFS_BLOCK_SIZE);
+        // write(fileD, bff, (superBlock.data_region_addr + superBlock.data_region_len) * MFS_BLOCK_SIZE);
+
         if (msg.func == SHUTDOWN)
         {
             server_shutdown();
